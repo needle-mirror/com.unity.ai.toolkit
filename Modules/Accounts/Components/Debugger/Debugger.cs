@@ -1,0 +1,100 @@
+using System;
+using Unity.AI.Toolkit.Accounts.Services;
+using Unity.AI.Toolkit.Accounts.Services.Core;
+using Unity.AI.Toolkit.Accounts.Services.Data;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.UIElements;
+
+namespace Unity.AI.Toolkit.Accounts.Components
+{
+    [UxmlElement]
+    partial class Debugger : VisualElement
+    {
+        void TrackDropdown()
+        {
+            var aiDropdownUsed = this.Q<Toggle>("is-used-by-ai-dropdown");
+            AIDropdownController.dropdownContent.dropdown.RegisterCallback<AttachToPanelEvent>(_ => aiDropdownUsed.value = true);
+            AIDropdownController.dropdownContent.dropdown.RegisterCallback<DetachFromPanelEvent>(_ => aiDropdownUsed.value = false);
+        }
+
+        public Debugger()
+        {
+            var tree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/com.unity.ai.toolkit/Modules/Accounts/Components/Debugger/Debugger.uxml");
+            tree.CloneTree(this);
+
+            var reset = this.Q<Toggle>("reset-dropdown");
+            reset.RegisterValueChangedCallback(evt =>
+            {
+                if (evt.newValue)
+                    AIDropdownController.Init();
+                else
+                    AIDropdownController.Reset();
+            });
+            reset.SetValueWithoutNotify(AIDropdownController.dropdownContent != null);
+
+            var session = this.Q<Toggle>("session");
+            Account.sessionStatus.settings.Use(value => session.SetValueWithoutNotify(value));
+
+            if (AIDropdownController.dropdownContent.dropdown == null)
+                AIDropdownController.dropdownContent.OnCreated += TrackDropdown;
+            else
+                TrackDropdown();
+
+            var cloudConected = this.Q<EnumField>("cloud-connected");
+            cloudConected.Init(Account.cloudConnected.Value);
+            cloudConected.RegisterValueChangedCallback(evt => Account.cloudConnected.Value = (ProjectStatus)evt.newValue);
+            Account.cloudConnected.settings.Use(value => cloudConected.SetValueWithoutNotify(value));
+
+            var network = this.Q<Toggle>("network");
+            network.RegisterValueChangedCallback(evt => Account.network.Value = evt.newValue);
+            Account.network.settings.Use(value => network.SetValueWithoutNotify(value));
+
+            var signin = this.Q<EnumField>("signin");
+            signin.Init(Account.signIn.Value);
+            signin.RegisterValueChangedCallback(evt => Account.signIn.settings.Value = (SignInStatus)evt.newValue);
+            Account.signIn.settings.Use(value => signin.SetValueWithoutNotify(value));
+
+            var settings = this.Q<VisualElement>("settings-group");
+            this.Q<Button>("fetch-settings").clicked += Account.settings.Refresh;
+            this.Q<Button>("clear-settings").clicked += () => Account.settings.Value = null;
+            var settingsOrgId = this.Q<TextField>("settings-orgid");
+            var aiEnabled = this.Q<Toggle>("ai-enabled");
+            aiEnabled.RegisterValueChangedCallback(evt => Account.settings.Value = Account.settings.Value with {IsAiEnabled = evt.newValue});
+            Account.settings.settings.Use(value =>
+            {
+                settings.SetEnabled(value != null);
+                if (value == null)
+                    return;
+                settingsOrgId.SetValueWithoutNotify(value.OrgId);
+                aiEnabled.SetValueWithoutNotify(value.IsAiEnabled);
+            });
+
+            var legalAgreement = this.Q<Toggle>("legal-agreement");
+            legalAgreement.RegisterValueChangedCallback(evt => Account.settings.Value = Account.settings.Value with {IsTermsOfServiceAccepted = evt.newValue});
+            Account.legalAgreement.settings.Use(value => legalAgreement.SetValueWithoutNotify(value));
+
+            var dataSharing = this.Q<Toggle>("data-sharing");
+            dataSharing.RegisterValueChangedCallback(evt => Account.settings.Value = Account.settings.Value with {IsDataSharingEnabled = evt.newValue});
+            Account.settings.settings.Use(value => dataSharing.SetValueWithoutNotify(value.IsDataSharingEnabled));
+
+            var points = this.Q<VisualElement>("points-group");
+            this.Q<Button>("fetch-points").clicked += Account.pointsBalance.Refresh;
+            this.Q<Button>("clear-points").clicked += () => Account.pointsBalance.Value = null;
+            var pointsOrgId = this.Q<TextField>("points-orgid");
+            var pointsAvailable = this.Q<Slider>("points-available");
+            var pointsAllocated = this.Q<Slider>("points-allocated");
+            pointsAvailable.RegisterValueChangedCallback(evt => Account.pointsBalance.Value = Account.pointsBalance.Value with {PointsAvailable = Convert.ToInt32(evt.newValue)});
+            pointsAllocated.RegisterValueChangedCallback(evt => Account.pointsBalance.Value = Account.pointsBalance.Value with {PointsAllocated = Convert.ToInt32(evt.newValue)});
+            Account.pointsBalance.settings.Use(value =>
+            {
+                points.SetEnabled(value != null);
+                if (value == null)
+                    return;
+                pointsOrgId.SetValueWithoutNotify(value.OrgId);
+                pointsAvailable.SetValueWithoutNotify(value.PointsAvailable);
+                pointsAllocated.SetValueWithoutNotify(value.PointsAllocated);
+            });
+        }
+    }
+}

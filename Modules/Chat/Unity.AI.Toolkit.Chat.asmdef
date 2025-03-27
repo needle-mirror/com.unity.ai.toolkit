@@ -1,0 +1,16 @@
+{
+    "name": "Unity.AI.Toolkit.Chat",
+    "rootNamespace": "Unity.AI.Toolkit.Chat",
+    "references": [],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,22 @@
+{
+    "name": "Unity.AI.Toolkit.GenerationObjectPicker",
+    "rootNamespace": "Unity.AI.Toolkit.GenerationObjectPicker",
+    "references": [],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "Unity",
+            "expression": "6000.2.0a8",
+            "define": "OBJECT_SELECTOR_TOOLBAR_DECORATOR"
+        }
+    ],
+    "noEngineReferences": false
+}

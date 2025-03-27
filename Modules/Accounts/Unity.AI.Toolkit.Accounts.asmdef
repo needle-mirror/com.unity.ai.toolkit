@@ -1,0 +1,22 @@
+{
+    "name": "Unity.AI.Toolkit.Accounts",
+    "rootNamespace": "Unity.AI.Toolkit.Accounts",
+    "references": [],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "Unity",
+            "expression": "9999.9.9a9",
+            "define": "AI_ENABLED"
+        }
+    ],
+    "noEngineReferences": false
+}

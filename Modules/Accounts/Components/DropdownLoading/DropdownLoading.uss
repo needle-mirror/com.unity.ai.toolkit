@@ -1,0 +1,7 @@
+DropdownLoading {
+    align-items: center;
+}
+
+Spinner {
+    margin-bottom: 8px;
+}
