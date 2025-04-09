@@ -33,6 +33,7 @@ namespace Unity.AI.Toolkit.Accounts.Components
 
         public override string text
         {
+            get => base.text;
             set
             {
                 var str = TextProcessor?.Invoke(value) ?? value;

@@ -13,6 +13,7 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
 {
     static class AccountApi
     {
+        const string k_InternalMenu = "internal:";
         const string k_SetEnvironmentMenu = "AI Toolkit/Internals/AI.Account/Set Environment";
         const string k_SelectedEnvironmentKey = "AI_Toolkit_Account_Environment";
 
@@ -27,40 +28,40 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
             set => EditorPrefs.SetString(k_SelectedEnvironmentKey, value);
         }
 
-        [MenuItem(k_SetEnvironmentMenu + "/Production", false, 100)]
+        [MenuItem(k_InternalMenu + k_SetEnvironmentMenu + "/Production", false, 100)]
         static void SetProductionEnvironment() => selectedEnvironment = k_ProdEnvironment;
 
-        [MenuItem(k_SetEnvironmentMenu + "/Production", true, 100)]
+        [MenuItem(k_InternalMenu + k_SetEnvironmentMenu + "/Production", true, 100)]
         static bool ValidateSetProductionEnvironment()
         {
             Menu.SetChecked(k_SetEnvironmentMenu + "/Production", selectedEnvironment == k_ProdEnvironment);
             return true;
         }
 
-        [MenuItem(k_SetEnvironmentMenu + "/Staging", false, 100)]
+        [MenuItem(k_InternalMenu + k_SetEnvironmentMenu + "/Staging", false, 100)]
         static void SetStagingEnvironment() => selectedEnvironment = k_StagingEnvironment;
 
-        [MenuItem(k_SetEnvironmentMenu + "/Staging", true, 100)]
+        [MenuItem(k_InternalMenu + k_SetEnvironmentMenu + "/Staging", true, 100)]
         static bool ValidateSetStagingEnvironment()
         {
             Menu.SetChecked(k_SetEnvironmentMenu + "/Staging", selectedEnvironment == k_StagingEnvironment);
             return true;
         }
 
-        [MenuItem(k_SetEnvironmentMenu + "/Test", false, 100)]
+        [MenuItem(k_InternalMenu + k_SetEnvironmentMenu + "/Test", false, 100)]
         static void SetTestEnvironment() => selectedEnvironment = k_TestEnvironment;
 
-        [MenuItem(k_SetEnvironmentMenu + "/Test", true, 100)]
+        [MenuItem(k_InternalMenu + k_SetEnvironmentMenu + "/Test", true, 100)]
         static bool ValidateSetTestEnvironment()
         {
             Menu.SetChecked(k_SetEnvironmentMenu + "/Test", selectedEnvironment == k_TestEnvironment);
             return true;
         }
 
-        [MenuItem(k_SetEnvironmentMenu + "/Local :5050", false, 101)]
+        [MenuItem(k_InternalMenu + k_SetEnvironmentMenu + "/Local :5050", false, 101)]
         static void SetLocalEnvironment() => selectedEnvironment = k_LocalEnvironment;
 
-        [MenuItem(k_SetEnvironmentMenu + "/Local :5050", true, 101)]
+        [MenuItem(k_InternalMenu + k_SetEnvironmentMenu + "/Local :5050", true, 101)]
         static bool ValidateSetLocalEnvironment()
         {
             Menu.SetChecked(k_SetEnvironmentMenu + "/Local :5050", selectedEnvironment == k_LocalEnvironment);
