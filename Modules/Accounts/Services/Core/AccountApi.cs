@@ -24,7 +24,7 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
 
         static string selectedEnvironment
         {
-            get => EditorPrefs.GetString(k_SelectedEnvironmentKey, k_TestEnvironment);
+            get => EditorPrefs.GetString(k_SelectedEnvironmentKey, k_StagingEnvironment);
             set => EditorPrefs.SetString(k_SelectedEnvironmentKey, value);
         }
 
@@ -68,6 +68,9 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
             return true;
         }
 
+        static string s_LastLoggedError = string.Empty;
+        static string s_LastLoggedException = string.Empty;
+
         static async Task<TResponse> Request<TResponse>(Func<IOrganizationComponent, Task<OperationResult<TResponse>>> callback) where TResponse : class
         {
             try
@@ -82,11 +85,23 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
                     return result.Result.Value;
                 }
                 else
-                    Debug.LogError($"Error: {result.Result.Error.AiResponseError} - {result.Result.Error.Errors.FirstOrDefault()} -- Result type: {typeof(TResponse).Name}");
+                {
+                    string errorMessage = $"Error: {result.Result.Error.AiResponseError} - {result.Result.Error.Errors.FirstOrDefault()} -- Result type: {typeof(TResponse).Name}";
+                    if (!string.IsNullOrEmpty(CloudProjectSettings.organizationKey) && errorMessage != s_LastLoggedError)
+                    {
+                        Debug.Log(errorMessage);
+                        s_LastLoggedError = errorMessage;
+                    }
+                }
             }
             catch (Exception exception)
             {
-                Debug.LogException(exception);
+                string exceptionMessage = exception.ToString();
+                if (!string.IsNullOrEmpty(CloudProjectSettings.organizationKey) && exceptionMessage != s_LastLoggedException)
+                {
+                    Debug.Log($"Exception: {exceptionMessage}");
+                    s_LastLoggedException = exceptionMessage;
+                }
             }
 
             return null;
@@ -100,9 +115,9 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
 #else
 
         // Unless actual button is present, fake response to always be available.
-        internal static Task<SettingsResult> GetSettings() => Task.FromResult(new SettingsResult("", "", true, true, true));
+        internal static Task<SettingsResult> GetSettings() => Task.FromResult(new SettingsResult("", "", true, true, true, true));
         internal static Task<PointsBalanceResult> GetPointsBalance() => Task.FromResult(new PointsBalanceResult("", 5000, 4000));
-        internal static Task<SettingsResult> SetTermsOfServiceAcceptance(bool value) => Task.FromResult(new SettingsResult("", "", true, true, true));
+        internal static Task<SettingsResult> SetTermsOfServiceAcceptance(bool value) => Task.FromResult(new SettingsResult("", "", true, true, true, true));
 #endif
-}
+    }
 }

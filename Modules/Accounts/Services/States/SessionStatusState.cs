@@ -18,7 +18,7 @@ namespace Unity.AI.Toolkit.Accounts.Services.States
         {
             settings = new(
                 new Proxy<bool>(() => m_Value, value => m_Value = value),
-                () => Value = ApiAccessibleState.IsAccessible && Account.settings.AiEnabled && Account.legalAgreement.IsAgreed && Account.pointsBalance.HasAny,
+                () => Value = ApiAccessibleState.IsAccessible && (Account.settings.AiAssistantEnabled || Account.settings.AiGeneratorsEnabled) && Account.legalAgreement.IsAgreed && Account.pointsBalance.HasAny,
                 () => OnChange?.Invoke());
 
             settings.Refresh();

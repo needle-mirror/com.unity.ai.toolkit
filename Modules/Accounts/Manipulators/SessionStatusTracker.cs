@@ -32,21 +32,39 @@ namespace Unity.AI.Toolkit.Accounts.Manipulators
         protected override void RegisterCallbacksOnTarget()
         {
             Account.sessionStatus.OnChange += Refresh;
+            Account.session.OnChange += Refresh;
             Refresh();
         }
 
         protected override void UnregisterCallbacksFromTarget()
         {
             Account.sessionStatus.OnChange -= Refresh;
+            Account.session.OnChange -= Refresh;
         }
 
         void Refresh()
         {
             if (m_SetEnabled)
-                target.SetEnabled(Account.sessionStatus.IsUsable);
+            {
+                switch (this)
+                {
+                    case AssistantSessionStatusTracker:
+                        target.SetEnabled(Account.sessionStatus.IsUsable && Account.settings.AiAssistantEnabled);
+                        break;
+                    case GeneratorsSessionStatusTracker:
+                        target.SetEnabled(Account.sessionStatus.IsUsable && Account.settings.AiGeneratorsEnabled);
+                        break;
+                    default:
+                        target.SetEnabled(Account.sessionStatus.IsUsable);
+                        break;
+                }
+            }
             else if (m_SetVisibility)
                 target.style.display = Account.sessionStatus.IsUsable ? DisplayStyle.Flex : DisplayStyle.None;
             m_Callback?.Invoke();
         }
     }
+
+    public class AssistantSessionStatusTracker : SessionStatusTracker { }
+    public class GeneratorsSessionStatusTracker : SessionStatusTracker { }
 }

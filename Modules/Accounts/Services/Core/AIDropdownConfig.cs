@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 
 namespace Unity.AI.Toolkit.Accounts.Services
 {
-    public class AIDropdownConfigArgs
+    class AIDropdownConfigArgs
     {
         public Action<Button> button;
         public Action<PopupWindowContent> defaultContent;

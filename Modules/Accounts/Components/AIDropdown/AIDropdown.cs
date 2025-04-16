@@ -53,6 +53,6 @@ namespace Unity.AI.Toolkit.Accounts.Components
 
         static bool ShouldHidePoints =>
             !Account.network.IsAvailable ||
-            !Account.settings.AiEnabled;
+            (!Account.settings.AiAssistantEnabled && !Account.settings.AiGeneratorsEnabled);
     }
 }

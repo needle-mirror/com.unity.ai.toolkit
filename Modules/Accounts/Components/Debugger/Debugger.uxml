@@ -11,7 +11,8 @@
         <Foldout name="settings" value="true" text="Settings">
             <VisualElement name="settings-group">
                 <TextField name="settings-orgid" label="OrgId" enabled="false"/>
-                <Toggle name="ai-enabled" label="AI Enabled"/>
+                <Toggle name="ai-assistant-enabled" label="AI Assistant Enabled"/>
+                <Toggle name="ai-generators-enabled" label="AI Generators Enabled"/>
                 <Toggle name="legal-agreement" label="Legal Agreement"/>
                 <Toggle name="data-sharing" label="Data Sharing"/>
             </VisualElement>

@@ -11,6 +11,12 @@
     "precompiledReferences": [],
     "autoReferenced": false,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.ai.toolkit",
+            "expression": "[0,1.0.0)",
+            "define": "UNITY_AI_ASSET_LABEL_FIX"
+        }
+    ],
     "noEngineReferences": false
 }

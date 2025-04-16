@@ -59,15 +59,18 @@ namespace Unity.AI.Toolkit.Accounts.Components
             this.Q<Button>("fetch-settings").clicked += Account.settings.Refresh;
             this.Q<Button>("clear-settings").clicked += () => Account.settings.Value = null;
             var settingsOrgId = this.Q<TextField>("settings-orgid");
-            var aiEnabled = this.Q<Toggle>("ai-enabled");
-            aiEnabled.RegisterValueChangedCallback(evt => Account.settings.Value = Account.settings.Value with {IsAiEnabled = evt.newValue});
+            var aiAssistantEnabled = this.Q<Toggle>("ai-assistant-enabled");
+            var aiGeneratorsEnabled = this.Q<Toggle>("ai-generators-enabled");
+            aiAssistantEnabled.RegisterValueChangedCallback(evt => Account.settings.Value = Account.settings.Value with {IsAiAssistantEnabled = evt.newValue});
+            aiGeneratorsEnabled.RegisterValueChangedCallback(evt => Account.settings.Value = Account.settings.Value with {IsAiGeneratorsEnabled = evt.newValue});
             Account.settings.settings.Use(value =>
             {
                 settings.SetEnabled(value != null);
                 if (value == null)
                     return;
                 settingsOrgId.SetValueWithoutNotify(value.OrgId);
-                aiEnabled.SetValueWithoutNotify(value.IsAiEnabled);
+                aiAssistantEnabled.SetValueWithoutNotify(value.IsAiAssistantEnabled);
+                aiGeneratorsEnabled.SetValueWithoutNotify(value.IsAiGeneratorsEnabled);
             });
 
             var legalAgreement = this.Q<Toggle>("legal-agreement");

@@ -8,14 +8,16 @@ namespace Unity.AI.Toolkit.Accounts.Services.Data
     public record SettingsRecord
     {
         public string OrgId;
-        public bool IsAiEnabled;
+        public bool IsAiAssistantEnabled;
+        public bool IsAiGeneratorsEnabled;
         public bool IsDataSharingEnabled;
         public bool IsTermsOfServiceAccepted;
 
         public SettingsRecord(SettingsResult result)
         {
             OrgId = result.OrgId;
-            IsAiEnabled = result.IsAiEnabled;
+            IsAiAssistantEnabled = result.IsAiAssistantEnabled;
+            IsAiGeneratorsEnabled = result.IsAiGeneratorsEnabled;
             IsDataSharingEnabled = result.IsDataSharingEnabled;
             IsTermsOfServiceAccepted = result.IsTermsOfServiceAccepted;
         }

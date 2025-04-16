@@ -14,7 +14,7 @@
     "versionDefines": [
         {
             "name": "Unity",
-            "expression": "9999.9.9a9",
+            "expression": "6000.2.0a8",
             "define": "AI_ENABLED"
         }
     ],

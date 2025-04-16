@@ -2,16 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
-using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 #if OBJECT_SELECTOR_TOOLBAR_DECORATOR
-using System.Linq;
-using System.Reflection;
 using UnityEditor.UIElements;
-using UnityEngine.UIElements;
 #endif
 
 namespace Unity.AI.Toolkit
@@ -19,11 +15,9 @@ namespace Unity.AI.Toolkit
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static class GenerationObjectPicker
     {
-        const bool k_MonitorObjectPickerTemplates = true;
-
         static readonly Dictionary<string, RegisteredTemplate> k_RegisteredTemplates = new();
 
-        record RegisteredTemplate(string templatePath, Func<string, bool, string> createTemplate, string assetPath, Action<string> createAsset, Type assetType)
+        record RegisteredTemplate(Func<string, bool, string> createTemplate, string assetPath, Action<string> createAsset, Type assetType)
         {
             public Object templateObject;
         }
@@ -31,82 +25,25 @@ namespace Unity.AI.Toolkit
         /// <summary>
         /// Register an asset generation template to be used with the ObjectPicker
         /// </summary>
-        /// <param name="templatePath">blank asset template path</param>
+        /// <param name="modality">modality name</param>
         /// <param name="createTemplate">blank asset template create function</param>
         /// <param name="assetPath">generate asset path on template pick</param>
         /// <param name="createAsset">generate asset action on template pick</param>
-        public static void RegisterTemplate<T>(string templatePath, Func<string, bool, string> createTemplate, string assetPath, Action<string> createAsset) where T : Object
-        {
-            k_RegisteredTemplates.TryAdd(templatePath, new RegisteredTemplate(
-                templatePath, createTemplate,
-                assetPath, createAsset,
-                typeof(T)));
-        }
+        public static void RegisterTemplate<T>(string modality, Func<string, bool, string> createTemplate, string assetPath, Action<string> createAsset) where T : Object =>
+            k_RegisteredTemplates.TryAdd(modality, new RegisteredTemplate(createTemplate, assetPath, createAsset, typeof(T)));
+
+        static readonly string k_OldTemplatesDirectory = Path.Combine("Assets", "AI Toolkit", "Templates");
 
         [InitializeOnLoadMethod]
-        static async void ObjectPickerBlankGenerationHook()
+        static void ObjectPickerBlankGenerationHook()
         {
-            if (Application.isBatchMode)
-                return;
-
-            while (k_MonitorObjectPickerTemplates)
-            {
-                // poll every frame, the polling is pretty cheap, we will revisit this if it causes any issues. Using await NextFrameAsync() didn't behave properly on macOS.
-                await Task.Yield();
-
-                if (k_RegisteredTemplates.Count == 0)
-                    continue;
-
-                var templateObjects = new List<Object>();
-                foreach (var template in k_RegisteredTemplates.Values)
-                {
-                    // create and assert the template asset if it doesn't exist
-                    if (!File.Exists(template.templatePath))
-                    {
-                        // the template was moved
-                        if (template.templateObject)
-                            MakeOrphan(template.templateObject);
-
-                        var createdPath = template.createTemplate(template.templatePath, false);
-                        Debug.Assert(createdPath == template.templatePath, $"Failed to create template at {template.templatePath}");
-                    }
-
-                    if (!template.templateObject || AssetDatabase.GetAssetPath(template.templateObject) != template.templatePath)
-                        template.templateObject = AssetDatabase.LoadAssetAtPath(template.templatePath, template.assetType);
-
-                    templateObjects.Add(template.templateObject);
-                }
-
-                if (!ObjectSelectorUtilities.TryGetSelectedTemplate(templateObjects, out var selected) ||
-                    !k_RegisteredTemplates.TryGetValue(AssetDatabase.GetAssetPath(selected), out var selectedTemplate))
-                    continue;
-
-                // generative template object was picked
-                selectedTemplate.templateObject = null;
-                var uniquePath = AssetDatabase.GenerateUniqueAssetPath(selectedTemplate.assetPath);
-                AssetDatabase.MoveAsset(selectedTemplate.templatePath, uniquePath);
-                AssetDatabase.Refresh();
-                await Task.Yield(); // to prevent OnGUI repaint error logging
-                selectedTemplate.createAsset(uniquePath);
-            }
-        }
-
-        static void MakeOrphan(Object templateObject)
-        {
-            var assetPath = AssetDatabase.GetAssetPath(templateObject);
-            if (string.IsNullOrEmpty(assetPath))
-                return;
-
-            var directory = Path.GetDirectoryName(assetPath);
-            var extension = Path.GetExtension(assetPath);
-            var uniqueAssetPath = AssetDatabase.GenerateUniqueAssetPath(Path.Combine(directory, "Orphan Asset" + extension));
-
-            AssetDatabase.MoveAsset(assetPath, uniqueAssetPath);
-            AssetDatabase.Refresh();
+            // This is a one-time migration to remove the old templates directory
+            var assetGuid = AssetDatabase.AssetPathToGUID(k_OldTemplatesDirectory);
+            if (!string.IsNullOrEmpty(assetGuid))
+                AssetDatabase.DeleteAsset(k_OldTemplatesDirectory);
         }
 
 #if OBJECT_SELECTOR_TOOLBAR_DECORATOR
-
         [InitializeOnLoadMethod]
         static void SetupSelector()
         {
@@ -142,34 +79,33 @@ namespace Unity.AI.Toolkit
                 }
             }
 
-            if (templates.Count > 0)
-            {
-                // add a "Generate New" button next to the last button in the window's toolbar
-                var toggle = ObjectSelectorUtils.GetTargetElement(window);
-                if (toggle != null)
-                {
-                    var generateButton = new ToolbarButton { text = "Generate New" };
-                    toggle.parent.Insert(toggle.parent.IndexOf(toggle), generateButton);
-                    generateButton.clicked += () =>
-                    {
-                         if (templates.Count == 1)
-                         {
-                             SetSelectionFromTemplate(templates[0]);
-                         }
-                         else
-                         {
-                            var menu = new GenericMenu();
-                            foreach (var template in templates)
-                            {
-                                menu.AddItem(new GUIContent(Path.GetFileNameWithoutExtension(template.assetPath)),
-                                    false, () => SetSelectionFromTemplate(template));
-                            }
+            if (templates.Count <= 0)
+                return;
 
-                            menu.DropDown(generateButton.worldBound);
-                         }
-                    };
+            // add a "Generate New" button next to the last button in the window's toolbar
+            var toggle = ObjectSelectorUtils.GetTargetElement(window);
+            if (toggle == null)
+                return;
+
+            var generateButton = new ToolbarButton { text = "Generate New" };
+            toggle.parent.Insert(toggle.parent.IndexOf(toggle), generateButton);
+            generateButton.clicked += () =>
+            {
+                if (templates.Count == 1)
+                {
+                    SetSelectionFromTemplate(templates[0]);
+                    return;
                 }
-            }
+
+                var menu = new GenericMenu();
+                foreach (var template in templates)
+                {
+                    menu.AddItem(new GUIContent(Path.GetFileNameWithoutExtension(template.assetPath)),
+                        false, () => SetSelectionFromTemplate(template));
+                }
+
+                menu.DropDown(generateButton.worldBound);
+            };
 
             return;
 
@@ -177,9 +113,28 @@ namespace Unity.AI.Toolkit
             {
                 var path = AssetDatabase.GenerateUniqueAssetPath(template.assetPath);
                 path = template.createTemplate(path, true);
-                var asset = AssetDatabase.LoadAssetAtPath(path, template.assetType);
+                var assets = AssetDatabase.LoadAllAssetsAtPath(path);
+
+                // Find the first asset that matches the template's asset type
+                Object selectedAsset = null;
+                foreach (var asset in assets)
+                {
+                    if (asset != null && template.assetType.IsAssignableFrom(asset.GetType()))
+                    {
+                        selectedAsset = asset;
+                        break;
+                    }
+                }
+
+                // If no matching asset was found, fall back to the first asset
+                if (selectedAsset == null && assets.Length > 0)
+                    selectedAsset = assets[0];
+
+                if (selectedAsset == null)
+                    return;
+
                 EditorApplication.delayCall += () => template.createAsset(path);
-                ObjectSelectorUtils.SetSelection(asset.GetInstanceID());
+                ObjectSelectorUtils.SetSelection(selectedAsset.GetInstanceID());
             }
         }
 #endif // OBJECT_SELECTOR_TOOLBAR_DECORATOR

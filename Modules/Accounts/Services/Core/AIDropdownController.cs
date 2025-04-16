@@ -17,10 +17,9 @@ namespace Unity.AI.Toolkit.Accounts.Services
         {
             button = button =>
             {
+                aiButton = button;
                 AIToolbarButton.Init(button);
-                // Ensure the button is visible. Currently, is it hidden when in pro mode until packages are published.
-                if (Unsupported.IsDeveloperBuild())
-                    button.style.display = DisplayStyle.Flex;
+                button.style.display = DisplayStyle.Flex;
             },
             content = dropdownContent ??= new()
         });

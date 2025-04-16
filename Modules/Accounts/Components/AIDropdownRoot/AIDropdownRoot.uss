@@ -40,3 +40,11 @@ Button.simple {
     flex-direction: row;
     justify-content: space-between;
 }
+
+.hide {
+    display: none;
+}
+
+AIAssistantMenuItem {
+    margin-bottom: 8px;
+}

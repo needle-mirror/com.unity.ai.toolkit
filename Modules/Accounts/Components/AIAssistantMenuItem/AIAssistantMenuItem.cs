@@ -16,7 +16,7 @@ namespace Unity.AI.Toolkit.Accounts.Components
         static void Init() => DropdownExtension.RegisterMenuExtension(container => container.Add(new AIAssistantMenuItem()));
 
         static ListRequest s_ListRequest;
-        const string k_ComUnityAIAssistant = "com.unity.muse.chat";
+        const string k_ComUnityAIAssistant = "com.unity.ai.assistant";
         const string k_AssistantMenuItem = "Muse/Chat";
         const string k_OpenAssistantCommandId = "AI/Open Assistant";
 
@@ -66,7 +66,20 @@ namespace Unity.AI.Toolkit.Accounts.Components
             m_Shortcut.AddToClassList("shortcut");
             Add(m_Shortcut);
 
-            RegisterCallback<AttachToPanelEvent>(_ => RefreshShortcut());
+            RegisterCallback<AttachToPanelEvent>(_ =>
+            {
+                Account.session.OnChange += Refresh;
+                RefreshShortcut();
+            });
+            RegisterCallback<DetachFromPanelEvent>(_ =>
+            {
+                Account.session.OnChange -= Refresh;
+            });
+        }
+
+        void Refresh()
+        {
+            EnableInClassList("hide", !Account.settings.AiAssistantEnabled);
         }
 
         void RefreshShortcut()

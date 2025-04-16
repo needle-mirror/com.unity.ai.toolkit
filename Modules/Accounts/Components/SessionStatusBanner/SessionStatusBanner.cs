@@ -9,15 +9,18 @@ namespace Unity.AI.Toolkit.Accounts.Components
     [UxmlElement]
     public partial class SessionStatusBanner : VisualElement
     {
-        AIDisabledBanner m_AiDisabled;
+        AIDisabledBanner m_AiDisabledBanner;
         ConnectToCloudBanner m_NotCloudConnected;
         SignInBanner m_SignIn;
         NoNetworkBanner m_NoNetwork;
+        AIDisabledPackageBanner m_AIDisabledPackageBanner;
+        AIDisabledLegalBanner m_AIDisabledLegalBanner;
 
         protected VisualElement m_Current;
 
         public SessionStatusBanner()
         {
+            AddToClassList("session-status-banner");
             RegisterCallback<AttachToPanelEvent>(_ =>
             {
                 Account.session.OnChange += Refresh;
@@ -37,8 +40,14 @@ namespace Unity.AI.Toolkit.Accounts.Components
                 return m_SignIn ??= new();
             if (Account.cloudConnected.Value == ProjectStatus.NotConnected)
                 return m_NotCloudConnected ??= new();
-            if (!Account.settings.AiEnabled)
-                return m_AiDisabled ??= new();
+            if (!Account.settings.AiAssistantEnabled && !Account.settings.AiGeneratorsEnabled)
+                return m_AiDisabledBanner ??= new();
+            if (!Account.legalAgreement.IsAgreed)
+                return m_AIDisabledLegalBanner ??= new();
+            if(!Account.settings.AiAssistantEnabled && this is AssistantSessionStatusBanner)
+                return m_AIDisabledPackageBanner ??= new();
+            if(!Account.settings.AiGeneratorsEnabled && this is GeneratorsSessionStatusBanner)
+                return m_AIDisabledPackageBanner ??= new();
             return null;
         }
 

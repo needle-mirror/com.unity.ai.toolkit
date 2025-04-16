@@ -14,7 +14,9 @@ namespace Unity.AI.Toolkit.Accounts.Services.States
         public SettingsRecord Value { get => settings.Value; internal set => settings.Value = value; }
         public void Refresh() => settings.Refresh();
 
-        public bool AiEnabled => Value?.IsAiEnabled ?? false;
+        public bool AiAssistantEnabled => Value?.IsAiAssistantEnabled ?? false;
+
+        public bool AiGeneratorsEnabled => Value?.IsAiGeneratorsEnabled ?? false;
 
         public SettingsState() => settings = new(AccountPersistence.SettingsProxy, () => _ = RefreshInternal(), () => OnChange?.Invoke());
         async Task RefreshInternal() => Value = new(await AccountApi.GetSettings());
