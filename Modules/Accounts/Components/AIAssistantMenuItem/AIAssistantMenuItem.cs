@@ -17,7 +17,7 @@ namespace Unity.AI.Toolkit.Accounts.Components
 
         static ListRequest s_ListRequest;
         const string k_ComUnityAIAssistant = "com.unity.ai.assistant";
-        const string k_AssistantMenuItem = "Muse/Chat";
+        const string k_AssistantMenuItem = "Window/AI/Assistant";
         const string k_OpenAssistantCommandId = "AI/Open Assistant";
 
         [Shortcut(k_OpenAssistantCommandId, KeyCode.A, ShortcutModifiers.Alt | ShortcutModifiers.Control)]
