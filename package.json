@@ -1,7 +1,7 @@
 {
   "name": "com.unity.ai.toolkit",
   "displayName": "AI Toolkit",
-  "version": "1.0.0-pre.6",
+  "version": "1.0.0-pre.7",
   "unity": "6000.2",
   "unityRelease": "0a9",
   "description": "AI Toolkit is a package that provides tools for adding generative AI to Unity.",
@@ -9,18 +9,18 @@
     "com.unity.nuget.newtonsoft-json": "3.2.1"
   },
   "relatedPackages": {
-    "com.unity.ai.toolkit.tests": "1.0.0-pre.6"
+    "com.unity.ai.toolkit.tests": "1.0.0-pre.7"
   },
   "_upm": {
-    "changelog": "### Fixed\n\n- Fixed labels and copy."
+    "changelog": "### Fixed\n\n- Fixed labels and copy.\n- Fixed ai enablement flags sync with cloud project.\n\n### Changed\n\n- Update SDK to version 0.18.0."
   },
   "upmCi": {
-    "footprint": "0b44c1f1c5d1f221011fafbd3095cc78d7d228ca"
+    "footprint": "ed1014b6dde77153e873c27f81fe4a6d516e3385"
   },
   "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.ai.toolkit@1.0/manual/index.html",
   "repository": {
     "url": "https://github.cds.internal.unity3d.com/unity/UnityAIWorkflows.git",
     "type": "git",
-    "revision": "ee2f5e093f0224c2b4ddfd168732713e4f43e659"
+    "revision": "ca3c2e614b4f444d51ff02264b62d44d68828b38"
   }
 }

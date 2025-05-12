@@ -10,7 +10,7 @@ namespace Unity.AI.Toolkit.Accounts.Components
     [UxmlElement]
     partial class LegalAgreement : VisualElement
     {
-        record AIData
+        internal record AIData
         {
             public string text;
             public List<LabelUrlLink> links;
@@ -18,17 +18,20 @@ namespace Unity.AI.Toolkit.Accounts.Components
             public string installButtonText;
             public string noInternet;
             public string installingPackages;
+            public Action installButtonAction;
         }
 
-        AIData m_Data = new()
+        internal static readonly AIData data = new()
         {
-            text = "I have read and agree to the <link=terms><color=#7BAEFA>Unity AI Terms of Service</color></link> and the <link=supplemental><color=#7BAEFA>Generative AI Supplemental Privacy Notice.</color></link>"
-                + "\n\nI acknowledge and understand Unity AI uses <link=thirdparty><color=#7BAEFA>these third-party services</color></link>.",
+            text = "Use of Unity AI is governed by the <link=terms><color=#7BAEFA>Unity Terms of Service</color></link>."
+                + "\n\nBy proceeding, I acknowledge and understand that Unity AI integrates third-party services, and I " +
+                "confirm that I have reviewed and agreed to the respective terms of use for these services, as outlined " +
+                "in the <link=thirdparty><color=#7BAEFA>Unity AI Models and Partners</color></link> page.",
             links = new()
             {
                 new() {id = "terms", url = "https://unity.com/legal/terms-of-service"},
                 new() {id = "supplemental", url = "https://unity.com/legal/supplemental-privacy-statement-unity-muse"},
-                new() {id = "thirdparty", url = "https://unity.com/legal/terms-of-service"}
+                new() {id = "thirdparty", url = "https://unity.com/legal/unityai-models-partners"}
             },
             noInternet = "You need an internet connection to be able to use the AI features.",
             installingPackages = "Installing packages",
@@ -39,7 +42,8 @@ namespace Unity.AI.Toolkit.Accounts.Components
                 "com.unity.ai.assistant"
             },
 
-            installButtonText = "Agree and install AI features"
+            installButtonText = "Agree and install Unity AI",
+            installButtonAction = () => _ = AccountController.SetTermsOfService()
         };
 
         public LegalAgreement()
@@ -48,12 +52,12 @@ namespace Unity.AI.Toolkit.Accounts.Components
             tree.CloneTree(this);
 
             var text = this.Q<RichLabel>("legal-text");
-            text.links = m_Data.links;
-            text.text = m_Data.text;
+            text.links = data.links;
+            text.text = data.text;
 
             var button = this.Q<Button>("agree-button");
-            button.text = m_Data.installButtonText;
-            button.clicked += () => _ = AccountController.SetTermsOfService();
+            button.text = data.installButtonText;
+            button.clicked += data.installButtonAction;
 
             Add(text);
             Add(button);

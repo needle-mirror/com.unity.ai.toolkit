@@ -19,6 +19,7 @@ namespace Unity.AI.Toolkit.Accounts.Components
         const string k_ComUnityAIAssistant = "com.unity.ai.assistant";
         const string k_AssistantMenuItem = "Window/AI/Assistant";
         const string k_OpenAssistantCommandId = "AI/Open Assistant";
+        const string k_AssistantIsDisabledTooltip = "Your organization has disabled the use of Assistant";
 
         [Shortcut(k_OpenAssistantCommandId, KeyCode.A, ShortcutModifiers.Alt | ShortcutModifiers.Control)]
         public static void OpenAssistant()
@@ -69,17 +70,20 @@ namespace Unity.AI.Toolkit.Accounts.Components
             RegisterCallback<AttachToPanelEvent>(_ =>
             {
                 Account.session.OnChange += Refresh;
+                Refresh();
                 RefreshShortcut();
             });
             RegisterCallback<DetachFromPanelEvent>(_ =>
             {
                 Account.session.OnChange -= Refresh;
             });
+            Refresh();
         }
 
         void Refresh()
         {
-            EnableInClassList("hide", !Account.settings.AiAssistantEnabled);
+            SetEnabled(Account.settings.AiAssistantEnabled);
+            tooltip = Account.settings.AiAssistantEnabled ? "" : k_AssistantIsDisabledTooltip;
         }
 
         void RefreshShortcut()

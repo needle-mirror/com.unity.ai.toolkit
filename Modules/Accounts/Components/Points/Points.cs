@@ -20,7 +20,7 @@ namespace Unity.AI.Toolkit.Accounts.Components
             tree.CloneTree(this);
 
             m_Points = this.Q<Label>(className: "points-label");
-            this.Q<Button>("get-points").clicked += AccountLinks.GetPoints;
+            this.Q<Button>("get-points").clicked += AccountLinks.ViewBundles;
 
             RegisterCallback<AttachToPanelEvent>(_ =>
             {
@@ -39,6 +39,31 @@ namespace Unity.AI.Toolkit.Accounts.Components
                 m_Points.text = PrettyFormatSimple(Account.pointsBalance.Value.PointsAvailable);
         }
 
-        static string PrettyFormatSimple(long number) => number.ToString("N0", CultureInfo.CurrentCulture.NumberFormat);
+        /// <summary>
+        /// Transform the points in a compact format to display in the UI.
+        /// 3,000 points
+        /// 0 points
+        /// 28.1k points
+        /// 2.1m points
+        /// Everything above 4 digits needs abbreviation.
+        /// </summary>
+        /// <param name="number"></param>
+        /// <returns></returns>
+        internal static string PrettyFormatSimple(long number)
+        {
+            if (number < 0)
+                return "0";
+
+            if (number > 999999)
+            {
+                return (number / 100000 * 100000).ToString("0,,.#m", CultureInfo.CurrentCulture.NumberFormat);
+            }
+            if (number > 9999)
+            {
+                return (number / 100 * 100).ToString("0,.#k", CultureInfo.CurrentCulture.NumberFormat);
+            }
+
+            return number.ToString("N0", CultureInfo.CurrentCulture.NumberFormat);
+        }
     }
 }

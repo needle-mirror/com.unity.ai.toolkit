@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reflection;
+using Unity.AI.Toolkit.Accounts.Services;
 using UnityEditor;
 using UnityEngine;
 
@@ -69,6 +70,9 @@ namespace Unity.AI.Toolkit.GenerationContextMenu
         [MenuItem("Assets/Generate %g", true)]
         static bool ValidateGenerate()
         {
+            if (!Account.settings.AiGeneratorsEnabled)
+                return false;
+
             foreach (var (_, validateFunction) in k_GenerateContextMenuActions)
             {
                 if (validateFunction())

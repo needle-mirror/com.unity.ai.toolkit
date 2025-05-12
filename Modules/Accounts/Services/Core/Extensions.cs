@@ -41,5 +41,18 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
                 Debug.LogException(exception);
             }
         }
+
+        internal static void OnExtendGeneral(VisualElement element)
+        {
+            try
+            {
+                foreach (var item in DropdownExtension.onExtendMain.OrderBy(item => item.order))
+                    item.callback.Invoke(element);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception);
+            }
+        }
     }
 }

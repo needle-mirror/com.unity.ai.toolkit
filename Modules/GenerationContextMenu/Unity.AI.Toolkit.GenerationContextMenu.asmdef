@@ -1,7 +1,9 @@
 {
     "name": "Unity.AI.Toolkit.GenerationContextMenu",
     "rootNamespace": "Unity.AI.Toolkit.GenerationContextMenu",
-    "references": [],
+    "references": [
+        "GUID:a67048a276c1b495097ecef74afc68d2"
+    ],
     "includePlatforms": [
         "Editor"
     ],

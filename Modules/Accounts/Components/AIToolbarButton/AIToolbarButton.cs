@@ -39,10 +39,7 @@ namespace Unity.AI.Toolkit.Accounts
         internal static void Init(Button btn)
         {
             if (s_Button != null)
-            {
-                Debug.LogWarning("[AIToolbarButton] Initialized should only be called once.");
                 return;
-            }
 
             s_Button = btn;
             s_TextElement = (TextElement)btn[1];
@@ -51,6 +48,7 @@ namespace Unity.AI.Toolkit.Accounts
             var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(k_StyleSheetPath);
             if (!styleSheet)
                 return;
+
             s_Button.styleSheets.Add(styleSheet);
             s_Button.AddToClassList(k_UssClassName);
         }

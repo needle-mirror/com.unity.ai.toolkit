@@ -29,5 +29,23 @@ namespace Unity.AI.Toolkit.Accounts.Components
 
             Add(content);
         }
+
+        public BasicBannerContent(string message, IEnumerable<LabelLink> links, string buttonText, Action buttonAction)
+        {
+            styleSheets.Add(AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/com.unity.ai.toolkit/Modules/Accounts/Components/SessionStatusBanner/SessionStatusBanner.uss"));
+            styleSheets.Add(AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/com.unity.ai.toolkit/Modules/Accounts/Components/AIDropdownRoot/AIDropdownRoot.uss"));
+            AddToClassList("banner");
+
+            content.AddToClassList("banner-content-button");
+            content.Add(new RichLabel(message, links));
+
+            Add(content);
+            if (buttonAction == null) return;
+
+            var button = new Button { text = buttonText };
+            button.clicked += buttonAction;
+
+            content.Add(button);
+        }
     }
 }

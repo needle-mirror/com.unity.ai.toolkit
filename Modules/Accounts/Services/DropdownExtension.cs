@@ -9,6 +9,7 @@ namespace Unity.AI.Toolkit.Accounts.Services
     {
         internal static readonly List<(int order, Action<VisualElement> callback)> onShow = new();
         internal static readonly List<(int order, Action<VisualElement> callback)> onExtend = new();
+        internal static readonly List<(int order, Action<VisualElement> callback)> onExtendMain = new();
 
         /// <summary>
         /// Registers a callback whenever the AI dropdown is about to be shown.
@@ -41,6 +42,24 @@ namespace Unity.AI.Toolkit.Accounts.Services
             var item = (order, callback);
             onExtend.Add(item);
             return () => onExtend.Remove(item);
+        }
+
+        /// <summary>
+        /// Registers a callback to add a new menu item to the AI dropdown in the general area.
+        ///
+        /// This method is usually only called once, ever per editor session.
+        /// <example>
+        /// DropdownExtension.RegisterMenuExtensionGeneral(container => container.Add(new Label("my new menu item")));
+        /// </example>
+        /// </summary>
+        /// <param name="callback">The callback which will receive the VisualElement of the menu item container to which to append new items to.</param>
+        /// <param name="order">When the callback should be called (high values means earlier)</param>
+        /// <returns>A action to de-register the callback.</returns>
+        public static Action RegisterMainMenuExtension(Action<VisualElement> callback, int order = 10)
+        {
+            var item = (order, callback);
+            onExtendMain.Add(item);
+            return () => onExtendMain.Remove(item);
         }
     }
 }

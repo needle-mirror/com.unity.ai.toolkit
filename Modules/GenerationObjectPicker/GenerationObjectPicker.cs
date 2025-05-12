@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using Unity.AI.Toolkit.Accounts.Services;
 using UnityEditor;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
@@ -88,6 +89,7 @@ namespace Unity.AI.Toolkit
                 return;
 
             var generateButton = new ToolbarButton { text = "Generate New" };
+            generateButton.SetEnabled(Account.settings.AiGeneratorsEnabled);
             toggle.parent.Insert(toggle.parent.IndexOf(toggle), generateButton);
             generateButton.clicked += () =>
             {

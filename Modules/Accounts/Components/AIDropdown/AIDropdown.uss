@@ -25,3 +25,7 @@
 #data-sharing {
     opacity: 0.5;
 }
+
+.shortcut {
+    opacity: 0.5;
+}

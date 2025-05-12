@@ -15,7 +15,7 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
                 Application.OpenURL($"https://cloud.unity.com/home/organizations/{organizationId}/settings/general");
         }
 
-        public static void GetPoints() => Application.OpenURL("https://cloud.unity.com/home/organizations");
+        public static void ViewBundles() => Application.OpenURL("https://cloud.unity.com/home/ai");
 
         public static void OpenInPackageManager() =>
             UnityEditor.PackageManager.UI.Window.Open("com.unity.ai.toolkit");

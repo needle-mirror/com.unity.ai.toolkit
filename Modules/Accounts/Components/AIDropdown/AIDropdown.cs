@@ -10,18 +10,18 @@ namespace Unity.AI.Toolkit.Accounts.Components
     [UxmlElement]
     partial class AIDropdown : VisualElement
     {
-        Points m_Points;
-        Label m_DataSharing;
+        PointsBeta m_PointsBeta;
 
         public AIDropdown()
         {
             var tree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/com.unity.ai.toolkit/Modules/Accounts/Components/AIDropdown/AIDropdown.uxml");
             tree.CloneTree(this);
 
-            m_Points = this.Q<Points>("points");
-            this.Q<Label>("manage-account").AddManipulator(new Clickable(AccountLinks.ManageAccount));
-            m_DataSharing = this.Q<Label>("data-sharing");
-            this.Q<Label>("check-updates").AddManipulator(new Clickable(AccountLinks.OpenInPackageManager));
+            m_PointsBeta = this.Q<PointsBeta>("points");
+
+            var menuExtensionsGeneral = this.Q<VisualElement>("menu-extensions-general");
+            Extensions.OnExtendGeneral(menuExtensionsGeneral);
+
             var manageAccountSeparator = this.Q<VisualElement>("manage-account-separator");
             var menuExtensions = this.Q<VisualElement>("menu-extensions");
 
@@ -45,8 +45,7 @@ namespace Unity.AI.Toolkit.Accounts.Components
 
         void Refresh()
         {
-            m_Points.style.display = ShouldHidePoints ? DisplayStyle.None : DisplayStyle.Flex;
-            m_DataSharing.text = Account.settings.Value.IsDataSharingEnabled ? "Data sharing on" : "";
+            m_PointsBeta.style.display = ShouldHidePoints ? DisplayStyle.None : DisplayStyle.Flex;
 
             Extensions.OnShow(this);
         }

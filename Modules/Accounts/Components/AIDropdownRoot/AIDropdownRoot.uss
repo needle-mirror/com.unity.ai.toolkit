@@ -1,5 +1,5 @@
 AIDropdownRoot {
-    width: 268px;
+    width: 288px;
     min-height: 25px;
     padding: 8px;
 }
@@ -25,7 +25,7 @@ AIDropdownRoot {
 .separator {
     margin: 8px 0;
     border-color: var(--unity-colors-slider_groove-background-disabled);
-    border-top-width: 1px;
+    border-top-width: 2px;
 }
 
 Button.simple {
@@ -47,4 +47,9 @@ Button.simple {
 
 AIAssistantMenuItem {
     margin-bottom: 8px;
+}
+
+#points {
+    padding-top: 4px;
+    padding-bottom: 4px;
 }

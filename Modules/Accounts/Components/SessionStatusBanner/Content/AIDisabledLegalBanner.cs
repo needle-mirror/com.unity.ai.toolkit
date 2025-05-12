@@ -1,4 +1,6 @@
 using System;
+using Unity.AI.Toolkit.Accounts.Services;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Unity.AI.Toolkit.Accounts.Components
@@ -6,6 +8,7 @@ namespace Unity.AI.Toolkit.Accounts.Components
     [UxmlElement]
     public partial class AIDisabledLegalBanner : BasicBannerContent
     {
-        public AIDisabledLegalBanner() : base("Legal agreement is missing.") { }
+        public AIDisabledLegalBanner() : base(LegalAgreement.data.text, LegalAgreement.data.links,
+                LegalAgreement.data.installButtonText, LegalAgreement.data.installButtonAction) { }
     }
 }
