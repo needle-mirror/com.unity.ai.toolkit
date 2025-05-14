@@ -36,8 +36,12 @@ namespace Unity.AI.Toolkit.Accounts.Components
         {
             if (!Account.network.IsAvailable)
                 return m_NoNetwork ??= new();
+            if (Account.signIn.Value == SignInStatus.NotReady)
+                return new DropdownLoading("Loading user");
             if (Account.signIn.IsSignedOut)
                 return m_SignIn ??= new();
+            if (Account.cloudConnected.Value == ProjectStatus.NotReady)
+                return new DropdownLoading("Checking cloud connection");
             if (Account.cloudConnected.Value == ProjectStatus.NotConnected)
                 return m_NotCloudConnected ??= new();
             if (!Account.settings.AiAssistantEnabled && !Account.settings.AiGeneratorsEnabled)

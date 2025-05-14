@@ -2,7 +2,8 @@
     "name": "Unity.AI.Toolkit.GenerationObjectPicker",
     "rootNamespace": "Unity.AI.Toolkit.GenerationObjectPicker",
     "references": [
-        "GUID:a67048a276c1b495097ecef74afc68d2"
+        "GUID:a67048a276c1b495097ecef74afc68d2",
+        "GUID:6faae282c16541e783ea8766fb588077"
     ],
     "includePlatforms": [
         "Editor"

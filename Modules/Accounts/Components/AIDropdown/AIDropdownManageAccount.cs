@@ -8,8 +8,9 @@ namespace Unity.AI.Toolkit.Accounts
 {
     class AIDropdownManageAccount : VisualElement
     {
-        [InitializeOnLoadMethod]
-        static void Init() => DropdownExtension.RegisterMainMenuExtension(container => container.Add(new AIDropdownManageAccount()), 4);
+        // Disabling for now as the manage account link is not yet live and data sharing display messaging is not yet finalized.
+        //[InitializeOnLoadMethod]
+        //static void Init() => DropdownExtension.RegisterMainMenuExtension(container => container.Add(new AIDropdownManageAccount()), 4);
 
         Label m_DataSharing;
 

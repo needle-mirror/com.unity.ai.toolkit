@@ -8,6 +8,9 @@ using UnityEngine;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 #if OBJECT_SELECTOR_TOOLBAR_DECORATOR
+using System.Threading.Tasks;
+using Unity.AI.Toolkit.Asset;
+using UnityEditor.PackageManager;
 using UnityEditor.UIElements;
 #endif
 
@@ -111,9 +114,12 @@ namespace Unity.AI.Toolkit
 
             return;
 
-            void SetSelectionFromTemplate(RegisteredTemplate template)
+            async void SetSelectionFromTemplate(RegisteredTemplate template)
             {
-                var path = AssetDatabase.GenerateUniqueAssetPath(template.assetPath);
+                var assetNameAndExtension = Path.GetFileName(template.assetPath);
+                var dirPath = await GetActiveDirectoryOrDefault();
+                var path = Path.Combine(dirPath, assetNameAndExtension);
+                path = AssetDatabase.GenerateUniqueAssetPath(path);
                 path = template.createTemplate(path, true);
                 var assets = AssetDatabase.LoadAllAssetsAtPath(path);
 
@@ -137,6 +143,45 @@ namespace Unity.AI.Toolkit
 
                 EditorApplication.delayCall += () => template.createAsset(path);
                 ObjectSelectorUtils.SetSelection(selectedAsset.GetInstanceID());
+            }
+
+            static async Task<string> GetActiveDirectoryOrDefault()
+            {
+                var dirPath = string.Empty;
+                var activeFolderPath = AssetUtilities.GetSelectionPath();
+
+                if (!string.IsNullOrEmpty(activeFolderPath))
+                {
+                    if (!activeFolderPath.StartsWith("Assets"))
+                    {
+                        var req = Client.List(true);
+                        while (!req.IsCompleted)
+                        {
+                            await Task.Delay(100);
+                        }
+                        if (req.Status == StatusCode.Success)
+                        {
+                            foreach (var package in req.Result)
+                            {
+                                if (activeFolderPath.StartsWith(package.assetPath))
+                                {
+                                    if (package.source == PackageSource.Local)
+                                    {
+                                        dirPath = activeFolderPath;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        dirPath = activeFolderPath;
+                    }
+                }
+
+                dirPath = string.IsNullOrEmpty(dirPath) ? "Assets" : dirPath;
+                return dirPath;
             }
         }
 #endif // OBJECT_SELECTOR_TOOLBAR_DECORATOR
