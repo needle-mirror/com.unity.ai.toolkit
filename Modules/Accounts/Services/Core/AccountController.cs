@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Unity.AI.Toolkit.Accounts.Services.Core;
 using Unity.AI.Toolkit.Accounts.Services.States;
+using Unity.AI.Toolkit;
 using UnityEditor;
 using UnityEditor.Toolbars;
 using UnityEngine;

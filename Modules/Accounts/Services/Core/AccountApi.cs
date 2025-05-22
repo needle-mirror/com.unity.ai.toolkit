@@ -7,6 +7,7 @@ using AiEditorToolsSdk;
 using AiEditorToolsSdk.Components.Common.Responses.Wrappers;
 using AiEditorToolsSdk.Components.Organization;
 using AiEditorToolsSdk.Components.Organization.Responses;
+using Unity.AI.Toolkit;
 using UnityEditor;
 using UnityEngine;
 
@@ -14,8 +15,6 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
 {
     static class AccountApi
     {
-        const string k_InternalMenu = "internal:";
-        const string k_SetEnvironmentMenu = "AI Toolkit/Internals/AI.Account/Set Environment";
         const string k_SelectedEnvironmentKey = "AI_Toolkit_Account_Environment";
 
 #if UNITY_AI_OPEN_BETA
@@ -35,46 +34,6 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
             set => EditorPrefs.SetString(k_SelectedEnvironmentKey, value);
         }
 
-        [MenuItem(k_InternalMenu + k_SetEnvironmentMenu + "/Production", false, 100)]
-        static void SetProductionEnvironment() => selectedEnvironment = prodEnvironment;
-
-        [MenuItem(k_InternalMenu + k_SetEnvironmentMenu + "/Production", true, 100)]
-        static bool ValidateSetProductionEnvironment()
-        {
-            Menu.SetChecked(k_SetEnvironmentMenu + "/Production", selectedEnvironment == prodEnvironment);
-            return true;
-        }
-
-        [MenuItem(k_InternalMenu + k_SetEnvironmentMenu + "/Staging", false, 100)]
-        static void SetStagingEnvironment() => selectedEnvironment = stagingEnvironment;
-
-        [MenuItem(k_InternalMenu + k_SetEnvironmentMenu + "/Staging", true, 100)]
-        static bool ValidateSetStagingEnvironment()
-        {
-            Menu.SetChecked(k_SetEnvironmentMenu + "/Staging", selectedEnvironment == stagingEnvironment);
-            return true;
-        }
-
-        [MenuItem(k_InternalMenu + k_SetEnvironmentMenu + "/Test", false, 100)]
-        static void SetTestEnvironment() => selectedEnvironment = testEnvironment;
-
-        [MenuItem(k_InternalMenu + k_SetEnvironmentMenu + "/Test", true, 100)]
-        static bool ValidateSetTestEnvironment()
-        {
-            Menu.SetChecked(k_SetEnvironmentMenu + "/Test", selectedEnvironment == testEnvironment);
-            return true;
-        }
-
-        [MenuItem(k_InternalMenu + k_SetEnvironmentMenu + "/Local :5050", false, 101)]
-        static void SetLocalEnvironment() => selectedEnvironment = localEnvironment;
-
-        [MenuItem(k_InternalMenu + k_SetEnvironmentMenu + "/Local :5050", true, 101)]
-        static bool ValidateSetLocalEnvironment()
-        {
-            Menu.SetChecked(k_SetEnvironmentMenu + "/Local :5050", selectedEnvironment == localEnvironment);
-            return true;
-        }
-
         static string s_LastLoggedError = string.Empty;
         static string s_LastLoggedException = string.Empty;
 
@@ -86,7 +45,7 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
                 var builder = Builder.Build(CloudProjectSettings.organizationKey, CloudProjectSettings.userId, CloudProjectSettings.projectId, client, selectedEnvironment, new Logger(), new Auth());
                 var component = builder.OrganizationComponent();
 
-                var result = await callback(component);
+                var result = await EditorTask.Run(() => callback(component));
                 if (result.Result.IsSuccessful)
                 {
                     return result.Result.Value;

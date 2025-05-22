@@ -1,5 +1,4 @@
 using System;
-using System.Threading.Tasks;
 using Unity.AI.Toolkit.Accounts.Services.Core;
 
 namespace Unity.AI.Toolkit.Accounts.Services.States

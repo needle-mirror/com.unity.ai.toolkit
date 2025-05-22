@@ -1,14 +1,18 @@
 {
     "name": "Unity.AI.Toolkit.Accounts",
     "rootNamespace": "Unity.AI.Toolkit.Accounts",
-    "references": [],
+    "references": [
+        "GUID:5a241fc381813534d9cc6d07eb989239"
+    ],
     "includePlatforms": [
         "Editor"
     ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
-    "precompiledReferences": [],
+    "precompiledReferences": [
+        "AiEditorToolsSdk.dll"
+    ],
     "autoReferenced": false,
     "defineConstraints": [],
     "versionDefines": [

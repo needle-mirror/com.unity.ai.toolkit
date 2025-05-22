@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Unity.AI.Toolkit.Accounts.Services.Core;
 using Unity.AI.Toolkit.Accounts.Services.Data;
+using Unity.AI.Toolkit;
 
 namespace Unity.AI.Toolkit.Accounts.Services.States
 {

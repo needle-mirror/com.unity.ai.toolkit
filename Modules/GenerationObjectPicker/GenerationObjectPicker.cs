@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using Unity.AI.Toolkit.Accounts.Services;
+using Unity.AI.Toolkit;
 using UnityEditor;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
@@ -157,7 +158,7 @@ namespace Unity.AI.Toolkit
                         var req = Client.List(true);
                         while (!req.IsCompleted)
                         {
-                            await Task.Delay(100);
+                            await EditorTask.Delay(100);
                         }
                         if (req.Status == StatusCode.Success)
                         {

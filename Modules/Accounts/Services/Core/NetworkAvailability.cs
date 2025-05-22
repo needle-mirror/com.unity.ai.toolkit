@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Unity.AI.Toolkit;
 using UnityEditor;
 using UnityEngine;
 
@@ -44,7 +45,7 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
         // Tried using NetworkChange.NetworkAvailabilityChanged += OnNetworkAvailabilityChanged instead but Unity kept crashing with it and it throws on windows (not supported on this platform).
         static async Task CheckNetworkAction()
         {
-            await Task.Delay(delay);
+            await EditorTask.Delay(delay);
 
             // Make sure to stop this method when quitting otherwise builds won't complete.
             if (!s_Cancel)

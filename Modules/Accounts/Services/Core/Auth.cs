@@ -8,8 +8,14 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
 {
     class Auth : IUnityAuthenticationTokenProvider
     {
+        readonly int m_MainThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
+
+        string m_Token = CloudProjectSettings.accessToken;
+
         public Task<Result<string>> ForceRefreshToken() => GetToken();
 
-        public Task<Result<string>> GetToken() => Task.FromResult(Result<string>.Ok(CloudProjectSettings.accessToken));
+        public Task<Result<string>> GetToken() => Task.FromResult(System.Threading.Thread.CurrentThread.ManagedThreadId != m_MainThreadId
+            ? Result<string>.Ok(m_Token)
+            : Result<string>.Ok(m_Token = CloudProjectSettings.accessToken));
     }
 }

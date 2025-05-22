@@ -1,6 +1,5 @@
 using System;
 using AiEditorToolsSdk.Components.Organization.Responses;
-using UnityEngine.Serialization;
 
 namespace Unity.AI.Toolkit.Accounts.Services.Data
 {
