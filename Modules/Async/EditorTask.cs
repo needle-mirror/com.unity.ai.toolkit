@@ -77,7 +77,10 @@ namespace Unity.AI.Toolkit
             return await task;
         }
 
-        static bool isPlayingPaused
+        /// <summary>
+        /// Editor is playing and paused
+        /// </summary>
+        public static bool isPlayingPaused
         {
             get
             {

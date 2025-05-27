@@ -2,5 +2,5 @@
     <Style src="./AIDropdown.uss" />
     <Style src="../AIDropdownRoot/AIDropdownRoot.uss" />
 
-    <Label name="check-updates" class="label-button link text-menu-item" text="Check for updates"/>
+    <Label name="check-updates" class="label-button link text-menu-item" text="Check for Updates"/>
 </UXML>

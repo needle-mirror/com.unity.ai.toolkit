@@ -4,7 +4,7 @@
     <VisualElement class="points-balance-container aligned-row section-container">
         <VisualElement class="points-balance-label-container">
             <Label text="" class="points-label"/>
-            <Label text="points"/>
+            <Label text="Points"/>
         </VisualElement>
         <Button name="get-points" text="View bundles"/>
     </VisualElement>

@@ -4,8 +4,8 @@
     <VisualElement class="points-balance-container aligned-row section-container">
         <VisualElement class="points-balance-label-container">
             <Label text="" class="points-label"/>
-            <Label text="points"/>
+            <Label text="Points"/>
         </VisualElement>
-        <Label text="Free during Beta" tooltip="Points replenish automatically during the beta period" class="points-free-beta"/>
+        <Label text="Free During Beta" tooltip="Points replenish automatically during the Beta" class="points-free-beta"/>
     </VisualElement>
 </UXML>

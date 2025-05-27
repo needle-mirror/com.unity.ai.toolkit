@@ -51,7 +51,7 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
                     return result.Result.Value;
                 }
 
-                var errorMessage = $"Error: {result.Result.Error.AiResponseError} - {result.Result.Error.Errors.FirstOrDefault()} -- Result type: {typeof(TResponse).Name}";
+                var errorMessage = $"Error: {result.Result.Error.AiResponseError} - {result.Result.Error.Errors.FirstOrDefault()} -- Result type: {typeof(TResponse).Name} -- Url: {selectedEnvironment}";
                 if (!string.IsNullOrEmpty(CloudProjectSettings.organizationKey) && errorMessage != s_LastLoggedError)
                 {
                     Debug.Log(errorMessage);
