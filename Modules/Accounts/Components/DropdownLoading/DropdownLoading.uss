@@ -1,6 +1,7 @@
 DropdownLoading {
     align-items: center;
     margin: 8px;
+    width: 100%;
 }
 
 Spinner {

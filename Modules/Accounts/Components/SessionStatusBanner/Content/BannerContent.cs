@@ -19,10 +19,7 @@ namespace Unity.AI.Toolkit.Accounts.Components
 
             content.AddToClassList("banner-content");
 
-            var warningIcon = new Image
-            {
-                image = EditorGUIUtility.IconContent("console.warnicon").image as Texture2D
-            };
+            var warningIcon = new Image { image = EditorGUIUtility.IconContent("console.warnicon").image as Texture2D };
             warningIcon.AddToClassList("warning-icon");
             content.Add(warningIcon);
             content.Add(new RichLabel(message, links));
@@ -46,6 +43,33 @@ namespace Unity.AI.Toolkit.Accounts.Components
             button.clicked += buttonAction;
 
             content.Add(button);
+        }
+
+        public BasicBannerContent(string message, IEnumerable<LabelLink> links, string loadingMessage, TimeSpan? displayLoadingDuration = null)
+        {
+            styleSheets.Add(AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/com.unity.ai.toolkit/Modules/Accounts/Components/SessionStatusBanner/SessionStatusBanner.uss"));
+            styleSheets.Add(AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/com.unity.ai.toolkit/Modules/Accounts/Components/AIDropdownRoot/AIDropdownRoot.uss"));
+            AddToClassList("banner");
+
+            var warningIcon = new Image { image = EditorGUIUtility.IconContent("console.warnicon").image as Texture2D };
+            warningIcon.AddToClassList("warning-icon");
+
+            var richLabel = new RichLabel(message, links);
+            var dropdownLoading = new DropdownLoading(loadingMessage);
+
+            RegisterCallback<AttachToPanelEvent>(async _ =>
+            {
+                content.Clear();
+                content.AddToClassList("banner-content");
+                content.Add(dropdownLoading);
+                await EditorTask.Delay(displayLoadingDuration != null ? (int)displayLoadingDuration.Value.TotalMilliseconds : 30000);
+                content.Clear();
+                content.AddToClassList("banner-content");
+                content.Add(warningIcon);
+                content.Add(richLabel);
+            });
+
+            Add(content);
         }
     }
 }

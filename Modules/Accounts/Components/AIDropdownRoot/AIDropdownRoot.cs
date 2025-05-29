@@ -37,22 +37,18 @@ namespace Unity.AI.Toolkit.Accounts.Components
             });
         }
 
-
         void Refresh()
         {
             VisualElement current;
-            if (Account.signIn.Value == SignInStatus.NotReady)
-                current = new DropdownLoading("Loading user");
-            else if (Account.cloudConnected.Value == ProjectStatus.NotReady)
-                current = new DropdownLoading("Checking cloud connection");
-            else if (Account.signIn.IsSignedOut)
-                current = m_Banner ??= new();
-            else if (Account.cloudConnected.Value == ProjectStatus.NotConnected)
+            if (Account.signIn.Value == SignInStatus.NotReady ||
+                Account.signIn.IsSignedOut ||
+                Account.cloudConnected.Value == ProjectStatus.NotReady ||
+                Account.cloudConnected.Value == ProjectStatus.NotConnected)
                 current = m_Banner ??= new();
             else if (!Account.legalAgreement.Value)
                 current = m_LegalAgreement ??= new();
             else if (Account.settings.Value == null || Account.pointsBalance.Value == null)
-                current = new DropdownLoading("Loading account information");
+                current = m_Banner ??= new();
             else
                 current = m_Dropdown ??= new();
 
@@ -60,7 +56,8 @@ namespace Unity.AI.Toolkit.Accounts.Components
             {
                 m_Current = current;
                 m_Content.Clear();
-                m_Content.Add(m_Current);
+                if (m_Current != null)
+                    m_Content.Add(m_Current);
             }
         }
     }

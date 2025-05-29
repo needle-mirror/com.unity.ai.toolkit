@@ -1,7 +1,7 @@
 {
   "name": "com.unity.ai.toolkit",
   "displayName": "AI Toolkit",
-  "version": "1.0.0-pre.10",
+  "version": "1.0.0-pre.11",
   "unity": "6000.2",
   "unityRelease": "0a9",
   "description": "AI Toolkit is a package that provides tools for adding generative AI to Unity.",
@@ -9,18 +9,18 @@
     "com.unity.nuget.newtonsoft-json": "3.2.1"
   },
   "relatedPackages": {
-    "com.unity.ai.toolkit.tests": "1.0.0-pre.10"
+    "com.unity.ai.toolkit.tests": "1.0.0-pre.11"
   },
   "_upm": {
-    "changelog": "### Changed\n\n- Implemented an attempt to refresh the cloud access token when querying the Points Manager, if Unity Hub is running."
+    "changelog": "### Changed\n\n- Run Unity Hub if it isn't running when refreshing the cloud access token.\n- Show invalid cloud project banner if cloud settings not valid for 10 seconds or more."
   },
   "upmCi": {
-    "footprint": "0e8a3f6618804102044b0424afcb8022acfd3f40"
+    "footprint": "1b7c890317c246819054648872951d124d83b456"
   },
   "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.ai.toolkit@1.0/manual/index.html",
   "repository": {
     "url": "https://github.cds.internal.unity3d.com/unity/UnityAIWorkflows.git",
     "type": "git",
-    "revision": "9fba010d5c7cd4faa710f4cde9f3dc95aef26690"
+    "revision": "58a98373fdaf0202fd803a74f17c71a88a19fb0f"
   }
 }

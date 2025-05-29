@@ -10,11 +10,14 @@ namespace Unity.AI.Toolkit.Accounts.Components
     public partial class SessionStatusBanner : VisualElement
     {
         AIDisabledBanner m_AiDisabledBanner;
-        ConnectToCloudBanner m_NotCloudConnected;
         SignInBanner m_SignIn;
+        SignInDelayedBanner m_SignInDelayedBanner;
         NoNetworkBanner m_NoNetwork;
         AIDisabledPackageBanner m_AIDisabledPackageBanner;
         AIDisabledLegalBanner m_AIDisabledLegalBanner;
+        ConnectToCloudBanner m_ConnectToCloudBanner;
+        ConnectToCloudDelayedBanner m_ConnectToCloudDelayedBanner;
+        AccountLoadDelayedBanner m_AccountLoadDelayedBanner;
 
         protected VisualElement m_Current;
 
@@ -32,29 +35,34 @@ namespace Unity.AI.Toolkit.Accounts.Components
             });
         }
 
+        // ReSharper disable once VirtualMemberNeverOverridden.Global
         protected virtual VisualElement CurrentView()
         {
+            VisualElement current = null;
             if (!Account.network.IsAvailable)
-                return m_NoNetwork ??= new();
-            if (Account.signIn.Value == SignInStatus.NotReady)
-                return new DropdownLoading("Loading user");
-            if (Account.signIn.IsSignedOut)
-                return m_SignIn ??= new();
-            if (Account.cloudConnected.Value == ProjectStatus.NotReady)
-                return new DropdownLoading("Checking cloud connection");
-            if (Account.cloudConnected.Value == ProjectStatus.NotConnected)
-                return m_NotCloudConnected ??= new();
-            if (!Account.settings.AiAssistantEnabled && !Account.settings.AiGeneratorsEnabled)
-                return m_AiDisabledBanner ??= new();
-            if (!Account.legalAgreement.IsAgreed)
-                return m_AIDisabledLegalBanner ??= new();
-            if(!Account.settings.AiAssistantEnabled && this is AssistantSessionStatusBanner)
-                return m_AIDisabledPackageBanner ??= new();
-            if(!Account.settings.AiGeneratorsEnabled && this is GeneratorsSessionStatusBanner)
-                return m_AIDisabledPackageBanner ??= new();
-            return null;
+                current = m_NoNetwork ??= new();
+            else if (Account.signIn.Value == SignInStatus.NotReady)
+                current = m_SignInDelayedBanner ??= new ();
+            else if (Account.signIn.IsSignedOut)
+                current = m_SignIn ??= new();
+            else if (Account.cloudConnected.Value == ProjectStatus.NotConnected)
+                current = m_ConnectToCloudBanner ??= new();
+            else if (Account.cloudConnected.Value == ProjectStatus.NotReady)
+                current = m_ConnectToCloudDelayedBanner ??= new ();
+            else if (!Account.settings.AiAssistantEnabled && !Account.settings.AiGeneratorsEnabled)
+                current = m_AiDisabledBanner ??= new();
+            else if (!Account.legalAgreement.IsAgreed)
+                current = m_AIDisabledLegalBanner ??= new();
+            else if(!Account.settings.AiAssistantEnabled && this is AssistantSessionStatusBanner)
+                current = m_AIDisabledPackageBanner ??= new();
+            else if(!Account.settings.AiGeneratorsEnabled && this is GeneratorsSessionStatusBanner)
+                current = m_AIDisabledPackageBanner ??= new();
+            else if (Account.settings.Value == null || Account.pointsBalance.Value == null)
+                current = m_AccountLoadDelayedBanner ??= new ();
+            return current;
         }
 
+        // ReSharper disable once VirtualMemberNeverOverridden.Global
         protected virtual void Refresh()
         {
             var current = CurrentView();

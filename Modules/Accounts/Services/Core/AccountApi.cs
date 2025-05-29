@@ -28,7 +28,7 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
 #endif
         public const string localEnvironment = "https://localhost:5050";
 
-        static string selectedEnvironment
+        public static string selectedEnvironment
         {
             get => EditorPrefs.GetString(k_SelectedEnvironmentKey, prodEnvironment);
             set => EditorPrefs.SetString(k_SelectedEnvironmentKey, value);
