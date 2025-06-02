@@ -23,7 +23,6 @@ namespace Unity.AI.Toolkit.Accounts.Services
 
         static void VerifyTermsOfServiceAcceptance()
         {
-#if AI_ENABLED
             // Ensure settings have been fetched and that we know the current terms of service setting
             if (Account.settings.Value == null)
             {
@@ -38,7 +37,6 @@ namespace Unity.AI.Toolkit.Accounts.Services
             // When it is the case, we need to send the fact that it was agreed to the server to be stored.
             if (AIDropdownConfig.instance.termsAccepted && !Account.legalAgreement.IsAgreed)
                 _ = SetTermsOfService();
-#endif
         }
 
         public static async Task SetTermsOfService()

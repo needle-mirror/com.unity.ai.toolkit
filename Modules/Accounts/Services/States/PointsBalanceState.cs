@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Unity.AI.Toolkit.Accounts.Services.Core;
 using Unity.AI.Toolkit.Accounts.Services.Data;
 using Unity.AI.Toolkit;
+using Unity.AI.Toolkit.Connect;
 
 namespace Unity.AI.Toolkit.Accounts.Services.States
 {
@@ -16,7 +17,15 @@ namespace Unity.AI.Toolkit.Accounts.Services.States
 
         public bool HasAny => Value?.PointsAvailable > 0;
 
-        public PointsBalanceState() => settings = new(AccountPersistence.PointsBalanceProxy, () => _ = RefreshInternal(), () => OnChange?.Invoke());
+        public PointsBalanceState()
+        {
+            settings = new(AccountPersistence.PointsBalanceProxy, () => _ = RefreshInternal(), () => OnChange?.Invoke());
+            Refresh();
+            AIDropdownBridge.ConnectProjectStateChanged(Refresh);
+            AIDropdownBridge.ConnectStateChanged(Refresh);
+            AIDropdownBridge.UserStateChanged(Refresh);
+        }
+
         async Task RefreshInternal() => Value = new(await AccountApi.GetPointsBalance());
     }
 }

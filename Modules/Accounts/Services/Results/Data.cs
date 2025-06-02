@@ -14,11 +14,11 @@ namespace Unity.AI.Toolkit.Accounts.Services.Data
 
         public SettingsRecord(SettingsResult result)
         {
-            OrgId = result.OrgId;
-            IsAiAssistantEnabled = result.IsAiAssistantEnabled;
-            IsAiGeneratorsEnabled = result.IsAiGeneratorsEnabled;
-            IsDataSharingEnabled = result.IsDataSharingEnabled;
-            IsTermsOfServiceAccepted = result.IsTermsOfServiceAccepted;
+            OrgId = result?.OrgId;
+            IsAiAssistantEnabled = result is { IsAiAssistantEnabled: true };
+            IsAiGeneratorsEnabled = result is { IsAiGeneratorsEnabled: true };
+            IsDataSharingEnabled = result is { IsDataSharingEnabled: true };
+            IsTermsOfServiceAccepted = result is { IsTermsOfServiceAccepted: true };
         }
     }
 
@@ -31,9 +31,9 @@ namespace Unity.AI.Toolkit.Accounts.Services.Data
 
         public PointsBalanceRecord(PointsBalanceResult result)
         {
-            OrgId = result.OrgId;
-            PointsAllocated = result.PointsAllocated;
-            PointsAvailable = result.PointsAvailable;
+            OrgId = result?.OrgId;
+            PointsAllocated = result?.PointsAllocated ?? 0;
+            PointsAvailable = result?.PointsAvailable ?? 0;
         }
     }
 

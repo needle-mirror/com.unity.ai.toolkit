@@ -17,9 +17,9 @@
     "defineConstraints": [],
     "versionDefines": [
         {
-            "name": "Unity",
-            "expression": "6000.2.0a8",
-            "define": "AI_ENABLED"
+            "name": "com.unity.ai.toolkit",
+            "expression": "[0,1.0.0)",
+            "define": "UNITY_AI_OPEN_BETA"
         }
     ],
     "noEngineReferences": false
