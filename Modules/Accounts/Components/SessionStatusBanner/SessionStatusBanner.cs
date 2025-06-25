@@ -18,6 +18,7 @@ namespace Unity.AI.Toolkit.Accounts.Components
         ConnectToCloudBanner m_ConnectToCloudBanner;
         ConnectToCloudDelayedBanner m_ConnectToCloudDelayedBanner;
         AccountLoadDelayedBanner m_AccountLoadDelayedBanner;
+        RegionBanner m_RegionBanner;
 
         protected VisualElement m_Current;
 
@@ -41,6 +42,8 @@ namespace Unity.AI.Toolkit.Accounts.Components
             VisualElement current = null;
             if (!Account.network.IsAvailable)
                 current = m_NoNetwork ??= new();
+            else if (!Account.settings.RegionAvailable)
+                current = m_RegionBanner ??= new ();
             else if (Account.signIn.Value == SignInStatus.NotReady)
                 current = m_SignInDelayedBanner ??= new ();
             else if (Account.signIn.IsSignedOut)

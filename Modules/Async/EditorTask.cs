@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEditor;
@@ -46,14 +44,8 @@ namespace Unity.AI.Toolkit
             if (task == null)
                 throw new ArgumentNullException(nameof(task));
 
-            if (!EditorThread.isMainThread || isPlayingPaused)
-            {
-                await task.ConfigureAwait(false);
-                await EditorThread.EnsureMainThreadAsync();
-                return;
-            }
-
-            await task;
+            await task.ConfigureAwait(false);
+            await EditorThread.EnsureMainThreadAsync();
         }
 
         /// <summary>
@@ -67,14 +59,9 @@ namespace Unity.AI.Toolkit
             if (task == null)
                 throw new ArgumentNullException(nameof(task));
 
-            if (!EditorThread.isMainThread || isPlayingPaused)
-            {
-                var result = await task.ConfigureAwait(false);
-                await EditorThread.EnsureMainThreadAsync();
-                return result;
-            }
-
-            return await task;
+            var result = await task.ConfigureAwait(false);
+            await EditorThread.EnsureMainThreadAsync();
+            return result;
         }
 
         /// <summary>
@@ -122,18 +109,10 @@ namespace Unity.AI.Toolkit
         /// </summary>
         public static Task Run(Action action, CancellationToken cancellationToken)
         {
-            if (!EditorThread.isMainThread || isPlayingPaused)
-                return Task.Run(action, cancellationToken).ConfigureAwaitMainThread();
+            if (action == null)
+                throw new ArgumentNullException(nameof(action));
 
-            try
-            {
-                action();
-                return Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                return Task.FromException(ex);
-            }
+            return Task.Run(action, cancellationToken).ConfigureAwaitMainThread();
         }
 
         /// <summary>
@@ -146,17 +125,100 @@ namespace Unity.AI.Toolkit
         /// </summary>
         public static Task<TResult> Run<TResult>(Func<Task<TResult>> function, CancellationToken cancellationToken)
         {
-            if (!EditorThread.isMainThread || isPlayingPaused)
-                return Task.Run(function, cancellationToken).ConfigureAwaitMainThread();
+            if (function == null)
+                throw new ArgumentNullException(nameof(function));
 
-            try
+            return Task.Run(function, cancellationToken).ConfigureAwaitMainThread();
+        }
+
+        /// <summary>
+        /// Dispatch an action on the main thread.
+        /// </summary>
+        /// <param name="action">The action to dispatch.</param>
+        /// <returns> A Task that completes when the action has been executed on the main thread.</returns>
+        /// <exception cref="ArgumentNullException"> Thrown when the action is null.</exception>
+        public static Task RunOnMainThread(Action action)
+        {
+            if (action == null)
+                throw new ArgumentNullException(nameof(action));
+
+            if (EditorThread.isMainThread)
             {
-                return function();
+                action();
+                return Task.CompletedTask;
             }
-            catch (Exception ex)
+
+            return Task.Run(async () =>
             {
-                return Task.FromException<TResult>(ex);
+                await EditorThread.EnsureMainThreadAsync();
+                action();
+            });
+        }
+
+        /// <summary>
+        /// Dispatch an asynchronous action on the main thread.
+        /// </summary>
+        /// <param name="asyncAction"> The asynchronous action to dispatch.</param>
+        /// <returns> A Task that completes when the action has been executed on the main thread.</returns>
+        /// <exception cref="ArgumentNullException"> Thrown when the action is null.</exception>
+        public static Task RunOnMainThread(Func<Task> asyncAction) => RunOnMainThread(asyncAction, CancellationToken.None);
+
+        /// <summary>
+        /// Dispatch an asynchronous action on the main thread.
+        /// </summary>
+        /// <param name="asyncAction"> The asynchronous action to dispatch.</param>
+        /// <param name="cancellationToken"></param>
+        /// <returns> A Task that completes when the action has been executed on the main thread.</returns>
+        /// <exception cref="ArgumentNullException"> Thrown when the action is null.</exception>
+        public static Task RunOnMainThread(Func<Task> asyncAction, CancellationToken cancellationToken)
+        {
+            if (asyncAction == null)
+                throw new ArgumentNullException(nameof(asyncAction));
+
+            if (EditorThread.isMainThread)
+            {
+                return asyncAction();
             }
+
+            return Task.Run(async () =>
+            {
+                await EditorThread.EnsureMainThreadAsync();
+                await asyncAction();
+            }, cancellationToken);
+        }
+
+        /// <summary>
+        /// Dispatch an asynchronous action on the main thread that returns a result.
+        /// </summary>
+        /// <param name="asyncAction"> The asynchronous action to dispatch that returns a result.</param>
+        /// <typeparam name="TResult"> The type of the result returned by the asynchronous action.</typeparam>
+        /// <returns> A Task that completes with the result of the action executed on the main thread.</returns>
+        /// <exception cref="ArgumentNullException"> Thrown when the action is null.</exception>
+        public static Task<TResult> RunOnMainThread<TResult>(Func<Task<TResult>> asyncAction) => RunOnMainThread(asyncAction, CancellationToken.None);
+
+        /// <summary>
+        /// Dispatch an asynchronous action on the main thread that returns a result.
+        /// </summary>
+        /// <param name="asyncAction"> The asynchronous action to dispatch that returns a result.</param>
+        /// <param name="cancellationToken"></param>
+        /// <typeparam name="TResult"> The type of the result returned by the asynchronous action.</typeparam>
+        /// <returns> A Task that completes with the result of the action executed on the main thread.</returns>
+        /// <exception cref="ArgumentNullException"> Thrown when the action is null.</exception>
+        public static Task<TResult> RunOnMainThread<TResult>(Func<Task<TResult>> asyncAction, CancellationToken cancellationToken)
+        {
+            if (asyncAction == null)
+                throw new ArgumentNullException(nameof(asyncAction));
+
+            if (EditorThread.isMainThread)
+            {
+                return asyncAction();
+            }
+
+            return Task.Run(async () =>
+            {
+                await EditorThread.EnsureMainThreadAsync();
+                return await asyncAction();
+            }, cancellationToken);
         }
     }
 }

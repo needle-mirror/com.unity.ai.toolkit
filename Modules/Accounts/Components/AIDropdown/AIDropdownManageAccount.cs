@@ -8,11 +8,10 @@ namespace Unity.AI.Toolkit.Accounts
 {
     class AIDropdownManageAccount : VisualElement
     {
-        // Disabling for now as the manage account link is not yet live and data sharing display messaging is not yet finalized.
-        //[InitializeOnLoadMethod]
-        //static void Init() => DropdownExtension.RegisterMainMenuExtension(container => container.Add(new AIDropdownManageAccount()), 4);
+        [InitializeOnLoadMethod]
+        static void Init() => DropdownExtension.RegisterMainMenuExtension(container => container.Add(new AIDropdownManageAccount()), 4);
 
-        Label m_DataSharing;
+        readonly Label m_DataSharing;
 
         public AIDropdownManageAccount()
         {
@@ -35,9 +34,6 @@ namespace Unity.AI.Toolkit.Accounts
             });
         }
 
-        void Refresh()
-        {
-            m_DataSharing.text = Account.settings.Value.IsDataSharingEnabled ? "Content data sharing on" : "Content data sharing off";
-        }
+        void Refresh() => m_DataSharing.text = Account.settings.Value.IsDataSharingEnabled ? "Developer Data Sharing On" : "Developer Data Sharing Off";
     }
 }

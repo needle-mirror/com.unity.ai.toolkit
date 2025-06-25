@@ -3,9 +3,11 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using AiEditorToolsSdk;
+using AiEditorToolsSdk.Components.Common.Enums;
 using AiEditorToolsSdk.Components.Common.Responses.Wrappers;
 using AiEditorToolsSdk.Components.Organization;
 using AiEditorToolsSdk.Components.Organization.Responses;
+using AiEditorToolsSdk.Domain.Abstractions.Services;
 using UnityEditor;
 using UnityEngine;
 
@@ -13,31 +15,36 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
 {
     static class AccountApi
     {
-        internal const string accountEnvironmentKey = "AI_Toolkit_Account_Environment";
+        [InitializeOnLoadMethod]
+        static void InitializeEnvironmentKeys() => Environment.RegisterEnvironmentKey(k_AccountEnvironmentKey, "Account Environment", _ => {
+            Account.settings.Refresh();
+            Account.pointsBalance.Refresh();
+        });
 
-#if UNITY_AI_OPEN_BETA
-        public const string prodEnvironment = "https://generators-beta.ai.unity.com";
-        public const string stagingEnvironment = "https://generators-stg-beta.ai.unity.com";
-        public const string testEnvironment = "https://generators-test-beta.ai.unity.com";
-#else
-        public const string prodEnvironment = "https://musetools.unity.com";
-        public const string stagingEnvironment = "https://musetools-stg.unity.com";
-        public const string testEnvironment = "https://musetools-test.unity.com";
-#endif
-        public const string localEnvironment = "https://localhost:5050";
+        const string k_AccountEnvironmentKey = "AI_Toolkit_Account_Environment";
 
-        public static string selectedEnvironment =>
-            Unsupported.IsDeveloperMode() ? EditorPrefs.GetString(accountEnvironmentKey, prodEnvironment) : prodEnvironment;
+        public static string selectedEnvironment => Environment.GetSelectedEnvironment(k_AccountEnvironmentKey);
 
         static string s_LastLoggedError = string.Empty;
         static string s_LastLoggedException = string.Empty;
+
+        static string s_SessionTraceId = Guid.NewGuid().ToString();
+
+        class TraceIdProvider : ITraceIdProvider
+        {
+            readonly string m_SessionId;
+
+            public TraceIdProvider(string sessionId) => m_SessionId = sessionId;
+
+            public Task<string> GetTraceId() => Task.FromResult(m_SessionId);
+        }
 
         static async Task<TResponse> Request<TResponse>(Func<IOrganizationComponent, Task<OperationResult<TResponse>>> callback) where TResponse : class
         {
             try
             {
                 using var client = new HttpClient();
-                var builder = Builder.Build(CloudProjectSettings.organizationKey, CloudProjectSettings.userId, CloudProjectSettings.projectId, client, selectedEnvironment, new Logger(), new Auth());
+                var builder = Builder.Build(CloudProjectSettings.organizationKey, CloudProjectSettings.userId, CloudProjectSettings.projectId, client, selectedEnvironment, new Logger(), new Auth(), new TraceIdProvider(s_SessionTraceId));
                 var component = builder.OrganizationComponent();
 
                 var result = await EditorTask.Run(() => callback(component));
@@ -45,6 +52,11 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
                 {
                     return result.Result.Value;
                 }
+
+                Debug.Log($"Trace Id {result.SdkTraceId} => {result.W3CTraceId}");
+
+                if (result.Result.Error.AiResponseError == AiResultErrorEnum.UnavailableForLegalReasons)
+                    Account.settings.RegionAvailable = false;
 
                 var errorMessage = $"Error: {result.Result.Error.AiResponseError} - {result.Result.Error.Errors.FirstOrDefault()} -- Result type: {typeof(TResponse).Name} -- Url: {selectedEnvironment}";
                 if (!string.IsNullOrEmpty(CloudProjectSettings.organizationKey) && errorMessage != s_LastLoggedError)

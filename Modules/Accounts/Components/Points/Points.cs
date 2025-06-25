@@ -36,7 +36,10 @@ namespace Unity.AI.Toolkit.Accounts.Components
         void RefreshPoints()
         {
             if (Account.pointsBalance.Value != null)
+            {
                 m_Points.text = PrettyFormatSimple(Account.pointsBalance.Value.PointsAvailable);
+                m_Points.tooltip = TooltipText(Account.pointsBalance.Value.PointsAvailable);
+            }
         }
 
         /// <summary>
@@ -64,6 +67,11 @@ namespace Unity.AI.Toolkit.Accounts.Components
             }
 
             return number.ToString("N0", CultureInfo.CurrentCulture.NumberFormat);
+        }
+
+        internal static string TooltipText(long number)
+        {
+            return number.ToString("N0", CultureInfo.CurrentCulture.NumberFormat) + " Points";
         }
     }
 }

@@ -25,7 +25,7 @@ namespace Unity.AI.Toolkit.Accounts.Services.States
                 Account.cloudConnected.OnChange -= value;
                 Account.settings.OnChange -= value;
                 Account.legalAgreement.OnChange -= value;
-                Account.pointsBalance.OnChange += value;
+                Account.pointsBalance.OnChange -= value;
             }
         }
     }

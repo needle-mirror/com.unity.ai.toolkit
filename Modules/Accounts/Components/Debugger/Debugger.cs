@@ -79,7 +79,16 @@ namespace Unity.AI.Toolkit.Accounts.Components
 
             var dataSharing = this.Q<Toggle>("data-sharing");
             dataSharing.RegisterValueChangedCallback(evt => Account.settings.Value = Account.settings.Value with {IsDataSharingEnabled = evt.newValue});
-            Account.settings.settings.Use(value => dataSharing.SetValueWithoutNotify(value.IsDataSharingEnabled));
+            Account.settings.settings.Use(value =>
+            {
+                if (value == null)
+                    return;
+                dataSharing.SetValueWithoutNotify(value.IsDataSharingEnabled);
+            });
+
+            var regionAvailable = this.Q<Toggle>("region-available");
+            regionAvailable.RegisterValueChangedCallback(evt => Account.settings.RegionAvailable = evt.newValue);
+            Account.settings.regionAvailability.Use(value => regionAvailable.SetValueWithoutNotify(value));
 
             var points = this.Q<VisualElement>("points-group");
             this.Q<Button>("fetch-points").clicked += Account.pointsBalance.Refresh;

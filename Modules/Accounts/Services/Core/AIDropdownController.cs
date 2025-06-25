@@ -1,5 +1,7 @@
 using System;
+using System.Configuration;
 using Unity.AI.Toolkit.Accounts.Components;
+using Unity.AI.Toolkit.Connect;
 using UnityEditor;
 using UnityEditor.Toolbars;
 using UnityEngine;
@@ -9,6 +11,8 @@ namespace Unity.AI.Toolkit.Accounts.Services
 {
     static class AIDropdownController
     {
+        const string key = "HideAIMenu";
+
         internal static AIDropdownContent dropdownContent;
         internal static Button aiButton;
 
@@ -19,10 +23,14 @@ namespace Unity.AI.Toolkit.Accounts.Services
             {
                 aiButton = button;
                 AIToolbarButton.Init(button);
-                button.style.display = DisplayStyle.Flex;
+                SetButtonVisibility(EditorPrefs.GetBool(key, false));
+                PreferencesUtils.RegisterHideMenuChanged(SetButtonVisibility);
             },
             content = dropdownContent ??= new()
         });
+
+        static void SetButtonVisibility(bool hidden) =>
+            aiButton.style.display = hidden ? DisplayStyle.None : DisplayStyle.Flex;
 
         internal static void Reset()
         {

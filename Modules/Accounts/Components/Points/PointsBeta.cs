@@ -34,7 +34,10 @@ namespace Unity.AI.Toolkit.Accounts.Components
         void RefreshPoints()
         {
             if (Account.pointsBalance.Value != null)
+            {
                 m_Points.text = Points.PrettyFormatSimple(Account.pointsBalance.Value.PointsAvailable);
+                m_Points.tooltip = Points.TooltipText(Account.pointsBalance.Value.PointsAvailable);
+            }
         }
     }
 }

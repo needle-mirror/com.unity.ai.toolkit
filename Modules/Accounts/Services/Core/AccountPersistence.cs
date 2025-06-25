@@ -16,6 +16,7 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
         public bool networkAvailable;
         public ProjectStatus isCloudConnected;
         public bool legalAgreement = true;
+        public bool regionAvailable = true;
 
         public static Proxy<SettingsRecord> SettingsProxy = new(() => instance.settings, value => instance.settings = value);
         public static Proxy<PointsBalanceRecord> PointsBalanceProxy = new(() => instance.pointsBalance, value => instance.pointsBalance = value);
@@ -23,5 +24,6 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
         public static Proxy<bool> NetworkAvailableProxy = new(() => instance.networkAvailable, value => instance.networkAvailable = value);
         public static Proxy<ProjectStatus> CloudConnectedProxy = new(() => instance.isCloudConnected, value => instance.isCloudConnected = value);
         public static Proxy<bool> LegalAgreementProxy = new(() => instance.legalAgreement, value => instance.legalAgreement = value);
+        public static Proxy<bool> RegionAvailabilityProxy = new(() => instance.regionAvailable, value => instance.regionAvailable = value);
     }
 }

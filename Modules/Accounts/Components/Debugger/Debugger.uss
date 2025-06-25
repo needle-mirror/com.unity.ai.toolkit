@@ -5,3 +5,7 @@
 #read-only {
     margin-top: 16px;
 }
+
+Slider TextField {
+    width: 100px;
+}

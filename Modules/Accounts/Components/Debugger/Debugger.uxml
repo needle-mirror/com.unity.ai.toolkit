@@ -15,6 +15,7 @@
                 <Toggle name="ai-generators-enabled" label="AI Generators Enabled"/>
                 <Toggle name="legal-agreement" label="Legal Agreement"/>
                 <Toggle name="data-sharing" label="Data Sharing"/>
+                <Toggle name="region-available" label="Region Available"/>
             </VisualElement>
             <VisualElement class="row">
                 <Button name="fetch-settings" class="simple" text="Fetch"/>
@@ -24,8 +25,8 @@
         <Foldout name="points" value="true" text="Points">
             <VisualElement name="points-group">
                 <TextField name="points-orgid" label="OrgId" enabled="false"/>
-                <Slider name="points-available" label="Points Available" show-input-field="true" high-value="100000" low-value="0"/>
-                <Slider name="points-allocated" label="Points Allocated" show-input-field="true" high-value="100000" low-value="0"/>
+                <Slider name="points-available" label="Points Available" show-input-field="true" high-value="2000000" low-value="0"/>
+                <Slider name="points-allocated" label="Points Allocated" show-input-field="true" high-value="2000000" low-value="0"/>
             </VisualElement>
             <VisualElement class="row">
                 <Button name="fetch-points" class="simple" text="Fetch"/>
