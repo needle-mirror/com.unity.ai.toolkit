@@ -1,7 +1,7 @@
 {
   "name": "com.unity.ai.toolkit",
   "displayName": "AI Toolkit",
-  "version": "1.0.0-pre.13",
+  "version": "1.0.0-pre.14",
   "unity": "6000.2",
   "unityRelease": "0b4",
   "description": "AI Toolkit is a package that provides tools for adding generative AI to Unity.",
@@ -9,18 +9,18 @@
     "com.unity.nuget.newtonsoft-json": "3.2.1"
   },
   "relatedPackages": {
-    "com.unity.ai.toolkit.tests": "1.0.0-pre.13"
+    "com.unity.ai.toolkit.tests": "1.0.0-pre.14"
   },
   "_upm": {
-    "changelog": "### Added\n\n- Added remaining points tooltip.\n- Added 'hide AI menu' preference.\n- Added manage account menu item.\n\n### Changed\n\n- Update SDK to version 0.21.0."
+    "changelog": "### Added\n\n- Added 'View Documentation' link.\n\n### Fixed\n\n- Fixed 'Manage Account' link."
   },
   "upmCi": {
-    "footprint": "7a2a1e0220610d5e29a74224bc4f421a555deb5d"
+    "footprint": "07ddb6c43bb0fff23230acc6a71953cec5b9a27b"
   },
   "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.ai.toolkit@1.0/manual/index.html",
   "repository": {
     "url": "https://github.cds.internal.unity3d.com/unity/UnityAIWorkflows.git",
     "type": "git",
-    "revision": "5e35507f4857a6a81e55422aff69264d67c82af4"
+    "revision": "4b7abdfcd0f7471bf6cbde3960f8b334182fd8f1"
   }
 }

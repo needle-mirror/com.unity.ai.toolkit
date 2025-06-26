@@ -12,10 +12,18 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
             if (string.IsNullOrEmpty(organizationId))
                 Application.OpenURL("https://cloud.unity.com/home/organizations");
             else
-                Application.OpenURL($"https://cloud.unity.com/home/organizations/{organizationId}/settings/general");
+                Application.OpenURL($"https://cloud.unity.com/home/organizations/{organizationId}/ai/settings");
         }
 
         public static void ViewBundles() => Application.OpenURL("https://cloud.unity.com/home/ai");
+        
+        public static void ViewDocumentation()
+        {
+            var versionParts = Application.unityVersion.Split('.');
+            Application.OpenURL(versionParts.Length >= 2
+                ? $"https://docs.unity3d.com/{versionParts[0]}.{versionParts[1]}/Documentation/Manual/ai-menu.html"
+                : "https://docs.unity3d.com/6000.2/Documentation/Manual/ai-menu.html");
+        }
 
         public static void OpenInPackageManager() =>
             UnityEditor.PackageManager.UI.Window.Open("com.unity.ai.toolkit");

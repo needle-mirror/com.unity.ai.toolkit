@@ -79,7 +79,7 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
                     logMessage += $"{key}: {EditorPrefs.GetString(key, prodEnvironment)}\n";
                 }
 
-                logMessage += $"(selected) Asset ID (trace ID): {traceID}";
+                logMessage += $"(selected) Asset ID (trace ID): {traceID}&{EditorAnalyticsSessionInfo.id}";
                 Debug.Log(logMessage);
             }
 
