@@ -10,7 +10,15 @@
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": false,
-    "defineConstraints": [],
-    "versionDefines": [],
+    "defineConstraints": [
+        "UNITY_AI_OPEN_BETA"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.ai.toolkit",
+            "expression": "[0,1.0.0)",
+            "define": "UNITY_AI_OPEN_BETA"
+        }
+    ],
     "noEngineReferences": false
 }

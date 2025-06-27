@@ -7,42 +7,78 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
     {
         public void LogDebug(string message)
         {
-            EditorTask.RunOnMainThread(() =>
+            try
             {
-                Debug.Log(message);
-            });
+                EditorTask.RunOnMainThread(() =>
+                {
+                    Debug.Log(message);
+                });
+            }
+            catch
+            {
+                // Silent catch with no logging
+            }
         }
 
         public void LogDebug(Exception exception, string message)
         {
-            EditorTask.RunOnMainThread(() =>
+            try
             {
-                Debug.Log(message);
-                Debug.LogException(exception);
-            });
+                EditorTask.RunOnMainThread(() =>
+                {
+                    Debug.Log(message);
+                    Debug.LogException(exception);
+                });
+            }
+            catch
+            {
+                // Silent catch with no logging
+            }
         }
 
         public void LogDebug(Exception exception)
         {
-            EditorTask.RunOnMainThread(() =>
+            try
             {
-                Debug.LogException(exception);
-            });
+                EditorTask.RunOnMainThread(() =>
+                {
+                    Debug.LogException(exception);
+                });
+            }
+            catch
+            {
+                // Silent catch with no logging
+            }
         }
 
         public void LogPublicInformation(string message)
         {
-            EditorTask.RunOnMainThread(() =>
+            try
             {
-                Debug.Log(message);
-            });
+                EditorTask.RunOnMainThread(() =>
+                {
+                    Debug.Log(message);
+                });
+            }
+            catch
+            {
+                // Silent catch with no logging
+            }
         }
 
         public void LogPublicError(string message)
         {
-            EditorTask.RunOnMainThread(() =>
+            try
             {
-                Debug.LogError(message);
-            });
+                EditorTask.RunOnMainThread(() =>
+                {
+                    Debug.LogError(message);
+                });
+            }
+            catch
+            {
+                // Silent catch with no logging
+            }
         }
-    }}
+    }
+}

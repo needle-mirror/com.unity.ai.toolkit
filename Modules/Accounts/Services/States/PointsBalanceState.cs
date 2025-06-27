@@ -26,6 +26,16 @@ namespace Unity.AI.Toolkit.Accounts.Services.States
             AIDropdownBridge.UserStateChanged(Refresh);
         }
 
-        async Task RefreshInternal() => Value = new(await AccountApi.GetPointsBalance());
+        async Task RefreshInternal()
+        {
+            var result = await AccountApi.GetPointsBalance();
+            if (result == null)
+            {
+                await EditorTask.Delay(2000);
+                result = await AccountApi.GetPointsBalance(); // retry once
+            }
+            
+            Value = new(result);
+        }
     }
 }

@@ -34,7 +34,15 @@ namespace Unity.AI.Toolkit.Accounts.Services.States
         async Task RefreshInternal()
         {
             RegionAvailable = true; // Assume region is available by default, change to false if there is an error in AccountApi.GetSettings()
-            Value = new(await AccountApi.GetSettings());
+
+            var result = await AccountApi.GetSettings();
+            if (result == null)
+            {
+                await EditorTask.Delay(2000);
+                result = await AccountApi.GetSettings(); // retry once
+            }
+
+            Value = new(result);
         }
     }
 }
