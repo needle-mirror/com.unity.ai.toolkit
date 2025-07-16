@@ -10,14 +10,17 @@ namespace Unity.AI.Toolkit.Accounts.Components
     [UxmlElement]
     partial class AIDropdown : VisualElement
     {
+        VisualElement m_PointsContainer;
         PointsBeta m_PointsBeta;
+        PointLoadFailedMessage m_PointLoadFailedMessage;
+        VisualElement m_currentPointsUI;
 
         public AIDropdown()
         {
             var tree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/com.unity.ai.toolkit/Modules/Accounts/Components/AIDropdown/AIDropdown.uxml");
             tree.CloneTree(this);
 
-            m_PointsBeta = this.Q<PointsBeta>("points");
+            m_PointsContainer = this.Q<VisualElement>("points-container");
 
             var menuExtensionsGeneral = this.Q<VisualElement>("menu-extensions-general");
             Extensions.OnExtendGeneral(menuExtensionsGeneral);
@@ -34,18 +37,34 @@ namespace Unity.AI.Toolkit.Accounts.Components
             {
                 Account.settings.OnChange += Refresh;
                 Account.network.OnChange += Refresh;
+                Account.pointsBalance.OnChange += Refresh;
                 Refresh();
             });
             RegisterCallback<DetachFromPanelEvent>(_ =>
             {
                 Account.settings.OnChange -= Refresh;
                 Account.network.OnChange -= Refresh;
+                Account.pointsBalance.OnChange -= Refresh;
             });
         }
 
         void Refresh()
         {
-            m_PointsBeta.style.display = ShouldHidePoints ? DisplayStyle.None : DisplayStyle.Flex;
+            VisualElement currentPointsUI;
+            if (!ShouldHidePoints && Account.pointsBalance.Value == null)
+                currentPointsUI = m_PointLoadFailedMessage ??= new();
+            else
+                currentPointsUI = m_PointsBeta ??= new();
+
+            if (m_PointsBeta != null)
+                m_PointsBeta.style.display = ShouldHidePoints ? DisplayStyle.None : DisplayStyle.Flex;
+
+            if (m_currentPointsUI != currentPointsUI)
+            {
+                m_currentPointsUI = currentPointsUI;
+                m_PointsContainer.Clear();
+                m_PointsContainer.Add(m_currentPointsUI);
+            }
 
             Extensions.OnShow(this);
         }

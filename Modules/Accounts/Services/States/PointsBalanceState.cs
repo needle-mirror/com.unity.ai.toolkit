@@ -2,7 +2,6 @@ using System;
 using System.Threading.Tasks;
 using Unity.AI.Toolkit.Accounts.Services.Core;
 using Unity.AI.Toolkit.Accounts.Services.Data;
-using Unity.AI.Toolkit;
 using Unity.AI.Toolkit.Connect;
 
 namespace Unity.AI.Toolkit.Accounts.Services.States
@@ -14,6 +13,7 @@ namespace Unity.AI.Toolkit.Accounts.Services.States
         public event Action OnChange;
         public PointsBalanceRecord Value { get => settings.Value; internal set => settings.Value = value; }
         public void Refresh() => settings.Refresh();
+        public Task RefreshPointsBalance() => RefreshInternal();
 
         public bool HasAny => Value?.PointsAvailable > 0;
 
@@ -30,12 +30,9 @@ namespace Unity.AI.Toolkit.Accounts.Services.States
         {
             var result = await AccountApi.GetPointsBalance();
             if (result == null)
-            {
-                await EditorTask.Delay(2000);
-                result = await AccountApi.GetPointsBalance(); // retry once
-            }
-            
-            Value = new(result);
+                Value = null;
+            else
+                Value = new(result);
         }
     }
 }

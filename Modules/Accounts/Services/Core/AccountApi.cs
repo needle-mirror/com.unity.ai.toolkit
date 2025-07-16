@@ -8,6 +8,7 @@ using AiEditorToolsSdk.Components.Common.Responses.Wrappers;
 using AiEditorToolsSdk.Components.Organization;
 using AiEditorToolsSdk.Components.Organization.Responses;
 using AiEditorToolsSdk.Domain.Abstractions.Services;
+using Unity.AI.Toolkit.Accounts.Services.States;
 using UnityEditor;
 using UnityEngine;
 
@@ -43,6 +44,8 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
         {
             try
             {
+                await ApiAccessibleState.WaitForCloudProjectSettings();
+
                 using var client = new HttpClient();
                 var builder = Builder.Build(CloudProjectSettings.organizationKey, CloudProjectSettings.userId, CloudProjectSettings.projectId, client, selectedEnvironment, new Logger(), new Auth(), new TraceIdProvider(s_SessionTraceId));
                 var component = builder.OrganizationComponent();
@@ -78,8 +81,11 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
             return null;
         }
 
-        internal static Task<SettingsResult> GetSettings() => Request(component => component.GetSettings());
-        internal static Task<PointsBalanceResult> GetPointsBalance() => Request(component => component.GetPointsBalance());
+        internal static Func<Task<SettingsResult>> GetSettingsDelegate = () => Request(component => component.GetSettings());
+        internal static Func<Task<PointsBalanceResult>> GetPointsDelegate = () => Request(component => component.GetPointsBalance());
+
+        internal static Task<SettingsResult> GetSettings() => GetSettingsDelegate();
+        internal static Task<PointsBalanceResult> GetPointsBalance() => GetPointsDelegate();
         internal static Task<SettingsResult> SetTermsOfServiceAcceptance(bool value) =>
             Request(component => component.SetTermsOfServiceAcceptance(value));
     }

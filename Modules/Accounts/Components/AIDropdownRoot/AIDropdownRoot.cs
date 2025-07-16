@@ -46,12 +46,12 @@ namespace Unity.AI.Toolkit.Accounts.Components
                 Account.cloudConnected.Value == ProjectStatus.NotReady ||
                 Account.cloudConnected.Value == ProjectStatus.NotConnected)
                 current = m_Banner ??= new();
-            else if (!Account.legalAgreement.Value && Account.settings.RegionAvailable)
-                current = m_LegalAgreement ??= new();
+            else if (Account.settings.Value == null)
+                current = m_Banner ??= new();
             else if (!Account.settings.RegionAvailable)
                 current = m_RegionBanner ??= new();
-            else if (Account.settings.Value == null || Account.pointsBalance.Value == null)
-                current = m_Banner ??= new();
+            else if (!Account.legalAgreement.Value)
+                current = m_LegalAgreement ??= new();
             else
                 current = m_Dropdown ??= new();
 

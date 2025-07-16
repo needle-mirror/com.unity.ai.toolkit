@@ -52,6 +52,8 @@ namespace Unity.AI.Toolkit.Accounts.Components
                 current = m_ConnectToCloudBanner ??= new();
             else if (Account.cloudConnected.Value == ProjectStatus.NotReady)
                 current = m_ConnectToCloudDelayedBanner ??= new ();
+            else if (Account.settings.Value == null)
+                current = m_AccountLoadDelayedBanner ??= new ();
             else if (!Account.settings.AiAssistantEnabled && !Account.settings.AiGeneratorsEnabled)
                 current = m_AiDisabledBanner ??= new();
             else if (!Account.legalAgreement.IsAgreed)
@@ -60,8 +62,6 @@ namespace Unity.AI.Toolkit.Accounts.Components
                 current = m_AIDisabledPackageBanner ??= new();
             else if(!Account.settings.AiGeneratorsEnabled && this is GeneratorsSessionStatusBanner)
                 current = m_AIDisabledPackageBanner ??= new();
-            else if (Account.settings.Value == null || Account.pointsBalance.Value == null)
-                current = m_AccountLoadDelayedBanner ??= new ();
             return current;
         }
 

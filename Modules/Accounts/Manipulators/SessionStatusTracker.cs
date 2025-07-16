@@ -1,5 +1,7 @@
 using System;
 using Unity.AI.Toolkit.Accounts.Services;
+using UnityEditor;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Unity.AI.Toolkit.Accounts.Manipulators
@@ -49,18 +51,25 @@ namespace Unity.AI.Toolkit.Accounts.Manipulators
                 switch (this)
                 {
                     case AssistantSessionStatusTracker:
-                        target.SetEnabled(Account.sessionStatus.IsUsable && Account.settings.AiAssistantEnabled);
+                        EditorApplication.delayCall += () => target?.SetEnabled(Account.sessionStatus.IsUsable && Account.settings.AiAssistantEnabled);
                         break;
                     case GeneratorsSessionStatusTracker:
-                        target.SetEnabled(Account.sessionStatus.IsUsable && Account.settings.AiGeneratorsEnabled);
+                        EditorApplication.delayCall += () => target?.SetEnabled(Account.sessionStatus.IsUsable && Account.settings.AiGeneratorsEnabled);
                         break;
                     default:
-                        target.SetEnabled(Account.sessionStatus.IsUsable);
+                        EditorApplication.delayCall += () => target?.SetEnabled(Account.sessionStatus.IsUsable);
                         break;
                 }
             }
             else if (m_SetVisibility)
-                target.style.display = Account.sessionStatus.IsUsable ? DisplayStyle.Flex : DisplayStyle.None;
+            {
+                EditorApplication.delayCall += () =>
+                {
+                    if (target != null)
+                        target.style.display = Account.sessionStatus.IsUsable ? DisplayStyle.Flex : DisplayStyle.None;
+                };
+            }
+
             m_Callback?.Invoke();
         }
     }

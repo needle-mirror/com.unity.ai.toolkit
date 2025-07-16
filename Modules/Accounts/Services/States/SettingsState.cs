@@ -2,7 +2,6 @@ using System;
 using System.Threading.Tasks;
 using Unity.AI.Toolkit.Accounts.Services.Core;
 using Unity.AI.Toolkit.Accounts.Services.Data;
-using Unity.AI.Toolkit;
 using Unity.AI.Toolkit.Connect;
 using UnityEngine;
 
@@ -17,8 +16,11 @@ namespace Unity.AI.Toolkit.Accounts.Services.States
         public SettingsRecord Value { get => settings.Value; internal set => settings.Value = value; }
         public bool RegionAvailable { get => regionAvailability.Value; set => regionAvailability.Value = value; }
         public void Refresh() => settings.Refresh();
+        public Task RefreshSettings() => RefreshInternal();
         public bool AiAssistantEnabled => Value?.IsAiAssistantEnabled ?? false;
         public bool AiGeneratorsEnabled => Value?.IsAiGeneratorsEnabled ?? false;
+        public bool IsDataSharingEnabled => Value?.IsDataSharingEnabled ?? false;
+        public bool IsTermsOfServiceAccepted => Value?.IsTermsOfServiceAccepted ?? false;
 
         public SettingsState()
         {
@@ -37,12 +39,9 @@ namespace Unity.AI.Toolkit.Accounts.Services.States
 
             var result = await AccountApi.GetSettings();
             if (result == null)
-            {
-                await EditorTask.Delay(2000);
-                result = await AccountApi.GetSettings(); // retry once
-            }
-
-            Value = new(result);
+                Value = null;
+            else
+                Value = new(result);
         }
     }
 }

@@ -1,7 +1,7 @@
 {
   "name": "com.unity.ai.toolkit",
   "displayName": "AI Toolkit",
-  "version": "1.0.0-pre.15",
+  "version": "1.0.0-pre.16",
   "unity": "6000.2",
   "unityRelease": "0b4",
   "description": "AI Toolkit is a package that provides tools for adding generative AI to Unity.",
@@ -9,18 +9,18 @@
     "com.unity.nuget.newtonsoft-json": "3.2.1"
   },
   "relatedPackages": {
-    "com.unity.ai.toolkit.tests": "1.0.0-pre.15"
+    "com.unity.ai.toolkit.tests": "1.0.0-pre.16"
   },
   "_upm": {
-    "changelog": "### Changed\n\n- Changed to a soft-dependency pattern to import Plugin attributes from AI Assistant for Generators.\n\n### Fixed\n\n- Fixed points refresh on access token refresh on domain reload, open, or play and stop."
+    "changelog": "### Fixed\n\n- Better handling of settings and points fetching errors.\n- Cleaner points and settings initialization when Editor Application is not in Focus."
   },
   "upmCi": {
-    "footprint": "32037a81ce5589eaa4a26662e21608170723dfc9"
+    "footprint": "8d9c1e4280a4efa8b5844b850eed44978e72f766"
   },
   "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.ai.toolkit@1.0/manual/index.html",
   "repository": {
     "url": "https://github.cds.internal.unity3d.com/unity/UnityAIWorkflows.git",
     "type": "git",
-    "revision": "2329c1b51594ac5671e1b7062174a1412d65de14"
+    "revision": "b30d305638c531718b7dba17920f1f4979b0b010"
   }
 }

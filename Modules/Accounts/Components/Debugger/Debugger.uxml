@@ -20,6 +20,7 @@
             <VisualElement class="row">
                 <Button name="fetch-settings" class="simple" text="Fetch"/>
                 <Button name="clear-settings" class="simple" text="Clear"/>
+                <Toggle name="fail-fetch-settings" label="Fail Fetch"/>
             </VisualElement>
         </Foldout>
         <Foldout name="points" value="true" text="Points">
@@ -31,6 +32,7 @@
             <VisualElement class="row">
                 <Button name="fetch-points" class="simple" text="Fetch"/>
                 <Button name="clear-points" class="simple" text="Clear"/>
+                <Toggle name="fail-fetch-points" label="Fail Fetch"/>
             </VisualElement>
         </Foldout>
         <Toggle name="reset-dropdown" label="AI Toolkit Dropdown Content" tooltip="Toggle the ai dropdown content to the editor default and AI Toolkit's"/>

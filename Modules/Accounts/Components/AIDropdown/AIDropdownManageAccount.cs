@@ -34,6 +34,6 @@ namespace Unity.AI.Toolkit.Accounts
             });
         }
 
-        void Refresh() => m_DataSharing.text = Account.settings.Value.IsDataSharingEnabled ? "Developer Data Sharing On" : "Developer Data Sharing Off";
+        void Refresh() => m_DataSharing.text = Account.settings.IsDataSharingEnabled ? "Developer Data Sharing On" : "Developer Data Sharing Off";
     }
 }

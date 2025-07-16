@@ -3,6 +3,7 @@ using Unity.AI.Toolkit.Accounts.Services.Core;
 using Unity.AI.Toolkit.Accounts.Services.Data;
 using Unity.AI.Toolkit.Connect;
 using UnityEditor;
+using UnityEngine;
 
 namespace Unity.AI.Toolkit.Accounts.Services.States
 {
@@ -25,6 +26,9 @@ namespace Unity.AI.Toolkit.Accounts.Services.States
 
         void RefreshInternal()
         {
+            if (AIDropdownBridge.isProjectValid && Unsupported.IsDeveloperMode())
+                Debug.Log($"Org id: {CloudProjectSettings.organizationKey}");
+
             if (!AIDropdownBridge.isProjectValid)
                 Value = ProjectStatus.NotReady;
             else

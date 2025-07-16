@@ -19,6 +19,6 @@ namespace Unity.AI.Toolkit.Accounts.Services.States
             Account.settings.OnChange += Refresh;
         }
 
-        void RefreshInternal() => Value = Account.settings?.Value?.IsTermsOfServiceAccepted ?? false;
+        void RefreshInternal() => Value = Account.settings.IsTermsOfServiceAccepted;
     }
 }

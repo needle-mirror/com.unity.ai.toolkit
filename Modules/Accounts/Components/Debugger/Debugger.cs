@@ -1,4 +1,6 @@
 using System;
+using System.Threading.Tasks;
+using AiEditorToolsSdk.Components.Organization.Responses;
 using Unity.AI.Toolkit.Accounts.Services;
 using Unity.AI.Toolkit.Accounts.Services.Core;
 using Unity.AI.Toolkit.Accounts.Services.Data;
@@ -72,6 +74,19 @@ namespace Unity.AI.Toolkit.Accounts.Components
                 aiAssistantEnabled.SetValueWithoutNotify(value.IsAiAssistantEnabled);
                 aiGeneratorsEnabled.SetValueWithoutNotify(value.IsAiGeneratorsEnabled);
             });
+            var failFetchSettings = this.Q<Toggle>("fail-fetch-settings");
+            var originalFetchSettingsDelegate = AccountApi.GetSettingsDelegate;
+            failFetchSettings.RegisterValueChangedCallback(evt =>
+            {
+                if (evt.newValue)
+                    AccountApi.GetSettingsDelegate = async () =>
+                    {
+                        await EditorTask.Delay(3000);
+                        return null;
+                    };
+                else
+                    AccountApi.GetSettingsDelegate = originalFetchSettingsDelegate;
+            });
 
             var legalAgreement = this.Q<Toggle>("legal-agreement");
             legalAgreement.RegisterValueChangedCallback(evt => Account.settings.Value = Account.settings.Value with {IsTermsOfServiceAccepted = evt.newValue});
@@ -107,6 +122,20 @@ namespace Unity.AI.Toolkit.Accounts.Components
                 pointsAvailable.SetValueWithoutNotify(value.PointsAvailable);
                 pointsAllocated.SetValueWithoutNotify(value.PointsAllocated);
             });
+            var failFetchPoints = this.Q<Toggle>("fail-fetch-points");
+            var originalFetchPointsDelegate = AccountApi.GetPointsDelegate;
+            failFetchPoints.RegisterValueChangedCallback(evt =>
+            {
+                if (evt.newValue)
+                    AccountApi.GetPointsDelegate = async () =>
+                    {
+                        await EditorTask.Delay(3000);
+                        return null;
+                    };
+                else
+                    AccountApi.GetPointsDelegate = originalFetchPointsDelegate;
+            });
+
         }
     }
 }

@@ -2,7 +2,7 @@
     <Style src="./AIDropdown.uss" />
     <Style src="../AIDropdownRoot/AIDropdownRoot.uss" />
     <toolkit:SessionStatusBanner name="banner"/>
-    <toolkit:PointsBeta name="points"/>
+    <VisualElement name="points-container"/>
     <VisualElement class="separator"/>
     <VisualElement name="menu-extensions-general"/>
     <VisualElement name="manage-account-separator" class="separator hidden"/>

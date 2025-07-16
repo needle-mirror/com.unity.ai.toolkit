@@ -12,7 +12,9 @@ namespace Unity.AI.Toolkit
     public struct EditorAwaitable : INotifyCompletion
     {
         public EditorAwaitable GetAwaiter() => this;
-        public bool IsCompleted => EditorThread.isMainThread;
+
+        // This determines if the continuation runs synchronously
+        public bool IsCompleted => false;  // Always use the async path for consistency
 
         public void OnCompleted(Action continuation)
         {
