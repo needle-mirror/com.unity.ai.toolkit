@@ -16,7 +16,7 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
         }
 
         public static void ViewBundles() => Application.OpenURL("https://cloud.unity.com/home/ai");
-        
+
         public static void ViewDocumentation()
         {
             var versionParts = Application.unityVersion.Split('.');
@@ -27,5 +27,11 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
 
         public static void OpenInPackageManager() =>
             UnityEditor.PackageManager.UI.Window.Open("com.unity.ai.toolkit");
+
+        public static void OpenAssistantInPackageManager() =>
+            UnityEditor.PackageManager.UI.Window.Open("com.unity.ai.assistant");
+
+        public static void OpenGeneratorsInPackageManager() =>
+            UnityEditor.PackageManager.UI.Window.Open("com.unity.ai.generators");
     }
 }

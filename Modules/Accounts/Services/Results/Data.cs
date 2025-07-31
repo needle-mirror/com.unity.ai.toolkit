@@ -1,4 +1,5 @@
 using System;
+using AiEditorToolsSdk.Components.Common.Enums;
 using AiEditorToolsSdk.Components.Organization.Responses;
 
 namespace Unity.AI.Toolkit.Accounts.Services.Data

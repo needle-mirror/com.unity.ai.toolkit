@@ -2,6 +2,7 @@ using System;
 using Unity.AI.Toolkit.Accounts.Services.Data;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Unity.AI.Toolkit.Accounts.Services.Core
 {
@@ -17,6 +18,7 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
         public ProjectStatus isCloudConnected;
         public bool legalAgreement = true;
         public bool regionAvailable = true;
+        public bool packagesSupported = true;
 
         public static Proxy<SettingsRecord> SettingsProxy = new(() => instance.settings, value => instance.settings = value);
         public static Proxy<PointsBalanceRecord> PointsBalanceProxy = new(() => instance.pointsBalance, value => instance.pointsBalance = value);
@@ -25,5 +27,6 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
         public static Proxy<ProjectStatus> CloudConnectedProxy = new(() => instance.isCloudConnected, value => instance.isCloudConnected = value);
         public static Proxy<bool> LegalAgreementProxy = new(() => instance.legalAgreement, value => instance.legalAgreement = value);
         public static Proxy<bool> RegionAvailabilityProxy = new(() => instance.regionAvailable, value => instance.regionAvailable = value);
+        public static Proxy<bool> PackagesSupportedProxy = new(() => instance.packagesSupported, value => instance.packagesSupported = value);
     }
 }

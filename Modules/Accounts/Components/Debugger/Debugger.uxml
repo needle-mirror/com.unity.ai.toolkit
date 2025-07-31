@@ -16,6 +16,7 @@
                 <Toggle name="legal-agreement" label="Legal Agreement"/>
                 <Toggle name="data-sharing" label="Data Sharing"/>
                 <Toggle name="region-available" label="Region Available"/>
+                <Toggle name="packages-supported" label="Packages Supported"/>
             </VisualElement>
             <VisualElement class="row">
                 <Button name="fetch-settings" class="simple" text="Fetch"/>

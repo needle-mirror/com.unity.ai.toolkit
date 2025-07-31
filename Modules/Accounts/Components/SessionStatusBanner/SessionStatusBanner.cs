@@ -19,6 +19,7 @@ namespace Unity.AI.Toolkit.Accounts.Components
         ConnectToCloudDelayedBanner m_ConnectToCloudDelayedBanner;
         AccountLoadDelayedBanner m_AccountLoadDelayedBanner;
         RegionBanner m_RegionBanner;
+        PackagesUnsupportedBanner m_UnsupportedBanner;
 
         protected VisualElement m_Current;
 
@@ -44,6 +45,12 @@ namespace Unity.AI.Toolkit.Accounts.Components
                 current = m_NoNetwork ??= new();
             else if (!Account.settings.RegionAvailable)
                 current = m_RegionBanner ??= new ();
+            else if (!Account.settings.PackagesSupported && this is AssistantSessionStatusBanner)
+                current = m_UnsupportedBanner ??= new AssistantUnsupportedBanner();
+            else if (!Account.settings.PackagesSupported && this is GeneratorsSessionStatusBanner)
+                current = m_UnsupportedBanner ??= new GeneratorsUnsupportedBanner();
+            else if (!Account.settings.PackagesSupported)
+                current = m_UnsupportedBanner ??= new ();
             else if (Account.signIn.Value == SignInStatus.NotReady)
                 current = m_SignInDelayedBanner ??= new ();
             else if (Account.signIn.IsSignedOut)
@@ -58,9 +65,9 @@ namespace Unity.AI.Toolkit.Accounts.Components
                 current = m_AiDisabledBanner ??= new();
             else if (!Account.legalAgreement.IsAgreed)
                 current = m_AIDisabledLegalBanner ??= new();
-            else if(!Account.settings.AiAssistantEnabled && this is AssistantSessionStatusBanner)
+            else if (!Account.settings.AiAssistantEnabled && this is AssistantSessionStatusBanner)
                 current = m_AIDisabledPackageBanner ??= new();
-            else if(!Account.settings.AiGeneratorsEnabled && this is GeneratorsSessionStatusBanner)
+            else if (!Account.settings.AiGeneratorsEnabled && this is GeneratorsSessionStatusBanner)
                 current = m_AIDisabledPackageBanner ??= new();
             return current;
         }

@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using Unity.AI.Toolkit.Accounts.Services;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -16,41 +18,43 @@ namespace Unity.AI.Toolkit.Accounts
 
         const int k_NotificationDurationMs = 2000;
 
-        static Button s_Button;
-        static TextElement s_TextElement;
+        static bool s_Initialized;
+        static Button AIButton => AIDropdownController.aiButton;
+        // Hard to pin down the exact element as it changes name id per Unity version. Structure seems somewhat stable though, so we are basing query on that.
+        static TextElement STextElement => AIButton.Query<TextElement>().ToList().LastOrDefault();
         static string s_OriginalContent;
         static IVisualElementScheduledItem s_AIToolbarButtonSchedule;
 
         public static void ShowPointsCostNotification(int amount)
         {
-            if (s_Button == null)
+            if (AIButton == null)
                 return;
 
             s_AIToolbarButtonSchedule?.Pause();
-            s_TextElement.text = $"-{amount}";
-            s_AIToolbarButtonSchedule = s_Button.schedule.Execute(() =>
+            STextElement.text = $"-{amount}";
+            s_AIToolbarButtonSchedule = AIButton.schedule.Execute(() =>
             {
-                s_TextElement.text = s_OriginalContent;
-                s_Button.RemoveFromClassList(k_NotificationVariantUssClassName);
+                STextElement.text = s_OriginalContent;
+                AIButton.RemoveFromClassList(k_NotificationVariantUssClassName);
             }).StartingIn(k_NotificationDurationMs);
-            s_Button.AddToClassList(k_NotificationVariantUssClassName);
+            AIButton.AddToClassList(k_NotificationVariantUssClassName);
         }
 
-        internal static void Init(Button btn)
+        internal static void Init()
         {
-            if (s_Button != null)
+            if (s_Initialized)
                 return;
 
-            s_Button = btn;
-            s_TextElement = (TextElement)btn[1];
-            s_OriginalContent = s_TextElement.text;
+            s_Initialized = true;
+            s_OriginalContent = STextElement.text;
 
             var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(k_StyleSheetPath);
             if (!styleSheet)
                 return;
 
-            s_Button.styleSheets.Add(styleSheet);
-            s_Button.AddToClassList(k_UssClassName);
+            AIButton.styleSheets.Add(styleSheet);
+            AIButton.AddToClassList(k_UssClassName);
         }
     }
 }
+

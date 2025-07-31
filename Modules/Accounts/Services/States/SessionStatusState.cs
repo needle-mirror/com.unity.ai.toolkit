@@ -25,4 +25,3 @@ namespace Unity.AI.Toolkit.Accounts.Services.States
         }
     }
 }
-

@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using UnityEditor;
 using UnityEngine;
 
 namespace Unity.AI.Toolkit.Accounts.Services.States
@@ -12,24 +13,49 @@ namespace Unity.AI.Toolkit.Accounts.Services.States
 
         internal static async Task WaitForCloudProjectSettings()
         {
+            var showedProgressBar = false;
+
             var time = DateTime.Now;
-            while (!IsAccessible)
+            try
             {
-                if (DateTime.Now - time > TimeSpan.FromSeconds(1))
+                // This loop will now continue even if the editor is unfocused
+                // because of the DisplayProgressBar call inside.
+                while (!IsAccessible)
                 {
-                    if (!s_HasLoggedWarning)
+                    // Check for timeout
+                    if (DateTime.Now - time > TimeSpan.FromSeconds(30)) // Increased timeout for robustness
                     {
-                        if (!Application.isBatchMode)
-                            Debug.Log("Account API is not accessible. Please bring the Editor into focus or check your network connection or environment settings.");
-                        s_HasLoggedWarning = true;
+                        if (!s_HasLoggedWarning)
+                        {
+                            if (!Application.isBatchMode)
+                                Debug.LogWarning("Account API did not become accessible within 30 seconds. This may be due to network issues or editor focus.");
+                            s_HasLoggedWarning = true;
+                        }
+                        return; // Exit after timeout
                     }
-                    return;
+
+                    // If the editor is not in focus, we must manually tickle the main thread's
+                    // update loop. Calling DisplayProgressBar is a known way to do this.
+                    if (!EditorApplication.isFocused)
+                    {
+                        showedProgressBar = true;
+                        EditorUtility.DisplayProgressBar("Initializing Services", "Waiting for API access...", 0.5f);
+                    }
+
+                    // Yield to the next frame to prevent a synchronous infinite loop.
+                    // The progress bar call above ensures this await will complete.
+                    await EditorTask.Delay(100); // Using a small delay is slightly better than Yield() in a tight poll
                 }
 
-                await EditorTask.Yield();
+                s_HasLoggedWarning = false;
             }
-
-            s_HasLoggedWarning = false;
+            finally
+            {
+                if (showedProgressBar)
+                {
+                    EditorUtility.ClearProgressBar();
+                }
+            }
         }
 
         public event Action OnChange

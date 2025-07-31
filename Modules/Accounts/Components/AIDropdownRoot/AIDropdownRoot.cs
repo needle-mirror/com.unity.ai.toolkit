@@ -16,6 +16,7 @@ namespace Unity.AI.Toolkit.Accounts.Components
         SessionStatusBanner m_Banner;
         LegalAgreement m_LegalAgreement;
         RegionBanner m_RegionBanner;
+        PackagesUnsupportedBanner m_UnsupportedBanner;
 
         public AIDropdownRoot()
         {
@@ -50,6 +51,8 @@ namespace Unity.AI.Toolkit.Accounts.Components
                 current = m_Banner ??= new();
             else if (!Account.settings.RegionAvailable)
                 current = m_RegionBanner ??= new();
+            else if (!Account.settings.PackagesSupported)
+                current = m_UnsupportedBanner ??= new();
             else if (!Account.legalAgreement.Value)
                 current = m_LegalAgreement ??= new();
             else

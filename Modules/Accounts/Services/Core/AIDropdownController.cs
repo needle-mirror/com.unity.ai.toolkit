@@ -22,7 +22,7 @@ namespace Unity.AI.Toolkit.Accounts.Services
             button = button =>
             {
                 aiButton = button;
-                AIToolbarButton.Init(button);
+                AIToolbarButton.Init();
                 SetButtonVisibility(EditorPrefs.GetBool(key, false));
                 PreferencesUtils.RegisterHideMenuChanged(SetButtonVisibility);
             },

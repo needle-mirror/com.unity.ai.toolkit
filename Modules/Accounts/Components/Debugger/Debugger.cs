@@ -105,6 +105,10 @@ namespace Unity.AI.Toolkit.Accounts.Components
             regionAvailable.RegisterValueChangedCallback(evt => Account.settings.RegionAvailable = evt.newValue);
             Account.settings.regionAvailability.Use(value => regionAvailable.SetValueWithoutNotify(value));
 
+            var packagesSupported = this.Q<Toggle>("packages-supported");
+            packagesSupported.RegisterValueChangedCallback(evt => Account.settings.PackagesSupported = evt.newValue);
+            Account.settings.packagesSupported.Use(value => packagesSupported.SetValueWithoutNotify(value));
+
             var points = this.Q<VisualElement>("points-group");
             this.Q<Button>("fetch-points").clicked += Account.pointsBalance.Refresh;
             this.Q<Button>("clear-points").clicked += () => Account.pointsBalance.Value = null;
