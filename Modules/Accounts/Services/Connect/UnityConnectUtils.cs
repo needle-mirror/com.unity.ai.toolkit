@@ -7,14 +7,14 @@ using UnityEngine;
 
 namespace Unity.AI.Toolkit.Connect
 {
-    internal class ChangeInfo
+    class ChangeInfo
     {
         public bool registered;
         public Func<Task> onChange;
         public Delegate eventDelegate;
     }
 
-    internal enum UnityConnectEvents
+    enum UnityConnectEvents
     {
         StateChanged,
         ProjectRefreshed,
@@ -23,9 +23,19 @@ namespace Unity.AI.Toolkit.Connect
     }
 
     /// <summary>
-    /// Caches UnityConnect reflection methods
+    /// Provides access to Unity Connect services through reflection and cached data.
+    ///
+    /// This class serves as the main interface for Unity Connect information and handles:
+    /// - Reflection-based access to internal Unity Connect APIs
+    /// - Thread-safe cached data access via UnityConnectProvider
+    /// - Event registration for Unity Connect state changes
+    /// - Fallback mechanisms for unreliable connection states
+    ///
+    /// All public methods that return connection data are backed by a persistent cache
+    /// that is automatically managed by UnityConnectProvider. The cache provides resilience
+    /// against intermittent connection failures and ensures consistent data access across threads.
     /// </summary>
-    internal static class UnityConnectUtils
+    static class UnityConnectUtils
     {
         /// <summary>
         /// Method used to get organization's foreign key
@@ -44,6 +54,7 @@ namespace Unity.AI.Toolkit.Connect
         /// </summary>
         static PropertyInfo LoggedInProperty => s_LoggedInProperty ??= k_UnityConnectType.GetProperty("loggedIn");
         static PropertyInfo s_LoggedInProperty;
+
         /// <summary>
         /// Property used to know if user info is ready to be considered
         /// </summary>
@@ -59,12 +70,12 @@ namespace Unity.AI.Toolkit.Connect
         static readonly Assembly k_ConnectAssembly = typeof(CloudProjectSettings).Assembly;
         static readonly Type k_UnityConnectType = k_ConnectAssembly.GetType("UnityEditor.Connect.UnityConnect");
 
-        static object Instance => s_Instance ??=
-            k_UnityConnectType
+        static object Instance =>
+            s_Instance ??= k_UnityConnectType
                 .GetProperty("instance", BindingFlags.Public | BindingFlags.Static)
                 ?.GetValue(null, null);
         static object s_Instance;
-        static Dictionary<UnityConnectEvents, EventInfo> s_Events = new();
+        static readonly Dictionary<UnityConnectEvents, EventInfo> k_Events = new();
 
         /// <summary>
         /// Get event info for event with passed id
@@ -73,10 +84,11 @@ namespace Unity.AI.Toolkit.Connect
         /// <returns> Requested event info </returns>
         public static EventInfo GetEventInfo(UnityConnectEvents eventId)
         {
-            if (!s_Events.ContainsKey(eventId))
-                s_Events[eventId] = k_UnityConnectType.GetEvent(eventId.ToString());
-            return s_Events[eventId];
+            if (!k_Events.ContainsKey(eventId))
+                k_Events[eventId] = k_UnityConnectType.GetEvent(eventId.ToString());
+            return k_Events[eventId];
         }
+
         /// <summary>
         /// Get the current user's organization ID
         /// </summary>
@@ -95,9 +107,8 @@ namespace Unity.AI.Toolkit.Connect
         }
 
         /// <summary>
-        /// Clear the current user's access token
+        /// Clears the access token using Unity Connect API.
         /// </summary>
-        /// <exception cref="Exception"> Throws exception when access token cannot be cleared </exception>
         public static void ClearAccessToken()
         {
             try
@@ -126,6 +137,7 @@ namespace Unity.AI.Toolkit.Connect
                 throw new Exception($"Could not fetch CloudProjectSettings log-in state: {exception.Message}");
             }
         }
+
         /// <summary>
         /// Is the user info ready?
         /// </summary>
@@ -144,24 +156,42 @@ namespace Unity.AI.Toolkit.Connect
         }
 
         /// <summary>
-        /// Is the project info valid?
+        /// Reads the current raw value of UnityConnect.projectInfo.valid without any caching.
+        /// This is used internally by the caching system to determine when to refresh cached data.
+        ///
+        /// Warning: This method bypasses the cache and may return unreliable values due to
+        /// intermittent connection issues. Use GetIsProjectInfoValid() for stable results.
         /// </summary>
-        /// <returns> True if the project info is currently valid</returns>
-        /// <exception cref="Exception"> Throws exception when project info cannot be fetched </exception>
-        public static bool GetIsProjectInfoValid()
+        public static bool GetIsProjectInfoValidRaw()
         {
             try
             {
-                var projectInfo = GetProjectInfo.GetValue(Instance);
+                var projectInfo = GetProjectInfo?.GetValue(Instance);
+                if (projectInfo == null) return false;
                 var validProperty = projectInfo.GetType().GetProperty("valid");
-                bool valid = (bool)validProperty.GetValue(projectInfo);
-                return valid;
+                if (validProperty == null) return false;
+                return (bool)validProperty.GetValue(projectInfo);
             }
             catch (Exception ex)
             {
-                Debug.LogError("Error accessing UnityConnect.projectInfo.valid: " + ex);
+                if (Unsupported.IsDeveloperMode())
+                    Debug.LogWarning($"[DevLog-UnityConnectUtils] Exception in GetIsProjectInfoValidRaw(): {ex}");
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Gets the project validity status from cached data.
+        /// This method provides resilience against intermittent connection failures
+        /// by returning the last known valid state from the cache.
+        ///
+        /// The underlying cache is updated automatically when called from the main thread
+        /// and uses the raw projectInfo.valid as a signal for data freshness.
+        /// </summary>
+        public static bool GetIsProjectInfoValid()
+        {
+            UnityConnectProvider.UpdateCache();
+            return UnityConnectProvider.cachedInfo.isProjectInfoValid;
         }
 
         /// <summary>
@@ -182,39 +212,41 @@ namespace Unity.AI.Toolkit.Connect
             }
         }
 
+        /// <summary>
+        /// Opens the Unity Connect login window.
+        /// </summary>
         public static void ShowLogin()
         {
             GetShowLogin.Invoke(Instance, null);
         }
 
-
         /// <summary>
-        /// Register to user state changed events
+        /// Registers a callback for user state changes.
         /// </summary>
         public static Delegate RegisterUserStateChangedEvent(Action<object> changed) =>
             RegisterUnityConnectChangedEvent(changed, UnityConnectEvents.UserStateChanged);
         /// <summary>
-        /// Register to project state changed events
+        /// Registers a callback for project state changes.
         /// </summary>
         public static Delegate RegisterProjectStateChangedEvent(Action<object> changed) =>
             RegisterUnityConnectChangedEvent(changed, UnityConnectEvents.ProjectStateChanged);
         /// <summary>
-        /// Register to connect state changed events
+        /// Registers a callback for general connect state changes.
         /// </summary>
         public static Delegate RegisterConnectStateChangedEvent(Action<object> changed) =>
             RegisterUnityConnectChangedEvent(changed, UnityConnectEvents.StateChanged);
         /// <summary>
-        /// Unregister from user state changed events
+        /// Unregisters a callback for user state changes.
         /// </summary>
         public static void UnregisterUserStateChangedEvent(Delegate attachedDelegate) =>
             UnregisterUnityConnectStateChangedEvent(attachedDelegate, UnityConnectEvents.UserStateChanged);
         /// <summary>
-        /// Unregister from project state changed events
+        /// Unregisters a callback for project state changes.
         /// </summary>
         public static void UnregisterProjectStateChangedEvent(Delegate attachedDelegate) =>
             UnregisterUnityConnectStateChangedEvent(attachedDelegate, UnityConnectEvents.ProjectStateChanged);
         /// <summary>
-        /// Unregister from connect state changed events
+        /// Unregisters a callback for general connect state changes.
         /// </summary>
         public static void UnregisterConnectStateChangedEvent(Delegate attachedDelegate) =>
             UnregisterUnityConnectStateChangedEvent(attachedDelegate, UnityConnectEvents.StateChanged);
@@ -230,6 +262,7 @@ namespace Unity.AI.Toolkit.Connect
         {
             try
             {
+                UnityConnectProvider.UpdateCache();
                 var userChangedEvent = GetEventInfo(eventId);
                 var convertedHandler = Delegate.CreateDelegate(
                     userChangedEvent.EventHandlerType,
@@ -243,6 +276,7 @@ namespace Unity.AI.Toolkit.Connect
                 throw new Exception($"Could not register to change event: {exception.Message}");
             }
         }
+
         /// <summary>
         /// Unregister callback from UnityConnectEvent
         /// </summary>
@@ -254,8 +288,8 @@ namespace Unity.AI.Toolkit.Connect
         {
             try
             {
+                UnityConnectProvider.UpdateCache();
                 var userChangedEvent = GetEventInfo(eventId);
-
                 userChangedEvent.RemoveEventHandler(Instance, attachedDelegate);
             }
             catch(Exception exception)
@@ -263,6 +297,5 @@ namespace Unity.AI.Toolkit.Connect
                 throw new Exception($"Could not de-register to change event: {exception.Message}");
             }
         }
-
     }
 }

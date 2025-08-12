@@ -15,7 +15,7 @@ namespace Unity.AI.Toolkit.Accounts.Services.States
         public ProjectStatus Value { get => settings.Value; internal set => settings.Value = value; }
         public void Refresh() => settings.Refresh();
 
-        public bool IsConnected => Value == ProjectStatus.Connected;      // Is Api accessible with user rights.
+        public bool IsConnected => Value == ProjectStatus.Connected; // Is Api accessible with user rights.
 
         public CloudConnectedState()
         {
@@ -27,12 +27,12 @@ namespace Unity.AI.Toolkit.Accounts.Services.States
         void RefreshInternal()
         {
             if (AIDropdownBridge.isProjectValid && Unsupported.IsDeveloperMode())
-                Debug.Log($"Org id: {CloudProjectSettings.organizationKey}");
+                Debug.Log($"Org id: {UnityConnectProvider.organizationKey}");
 
             if (!AIDropdownBridge.isProjectValid)
                 Value = ProjectStatus.NotReady;
             else
-                Value = CloudProjectSettings.projectBound ? ProjectStatus.Connected : ProjectStatus.NotConnected;
+                Value = UnityConnectProvider.projectBound ? ProjectStatus.Connected : ProjectStatus.NotConnected;
         }
     }
 }

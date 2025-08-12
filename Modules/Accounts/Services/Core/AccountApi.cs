@@ -11,6 +11,7 @@ using AiEditorToolsSdk.Components.Organization;
 using AiEditorToolsSdk.Components.Organization.Responses;
 using AiEditorToolsSdk.Domain.Abstractions.Services;
 using Unity.AI.Toolkit.Accounts.Services.States;
+using Unity.AI.Toolkit.Connect;
 using UnityEditor;
 using UnityEngine;
 
@@ -35,7 +36,7 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
 
         // These timeouts are NOT for network requests. They are external deadlines imposed on our async operations
         // to detect and escape from hangs in the Unity Editor's async scheduler.
-        static readonly int[] k_TimeoutDurations = { 2, 4, 8, 16, 32, 64, 128 };
+        static readonly int[] k_TimeoutDurations = { 2, 4, 8, 16, 16, 32, 32, 32, 32, 64, 64, 64, 64 };
 
         // Cache for in-progress tasks
         static readonly Dictionary<Type, Task> k_TaskCache = new();
@@ -65,8 +66,7 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
 
                 using var editorFocus = new EditorAsyncKeepAliveScope("Verifying account settings.");
 
-                using var client = new HttpClient();
-                var builder = Builder.Build(CloudProjectSettings.organizationKey, CloudProjectSettings.userId, CloudProjectSettings.projectId, client, selectedEnvironment, new Logger(), new Auth(), new TraceIdProvider(k_SessionTraceId));
+                var builder = Builder.Build(UnityConnectProvider.organizationKey, UnityConnectProvider.userId, UnityConnectProvider.projectId, HttpClientManager.instance, selectedEnvironment, new Logger(), new Auth(), new TraceIdProvider(k_SessionTraceId));
                 var component = builder.OrganizationComponent();
 
                 OperationResult<TResponse> result = null;
@@ -101,10 +101,8 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
                         // An OperationCanceledException here means our self-imposed timeout was triggered.
                         // We interpret this not as a network timeout, but as a potential hang in the editor's async scheduler.
                         // We will let the loop continue to try again with a longer deadline.
-                        if (Unsupported.IsDeveloperMode())
-                        {
-                            Debug.Log($"Request timed out after {k_TimeoutDurations[retryAttempt]}s. Retrying with longer timeout...");
-                        }
+                        //if (Unsupported.IsDeveloperMode())
+                        //    Debug.Log($"Request timed out after {k_TimeoutDurations[retryAttempt]}s. Retrying with longer timeout...");
                     }
                 }
 
@@ -118,7 +116,7 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
                         Account.settings.PackagesSupported = false;
 
                     var errorMessage = $"Error after {k_TimeoutDurations.Length} attempts: {result.Result.Error.AiResponseError} - {result.Result.Error.Errors.FirstOrDefault()} -- Result type: {typeof(TResponse).Name} -- Url: {selectedEnvironment}";
-                    if (!string.IsNullOrEmpty(CloudProjectSettings.organizationKey) && errorMessage != s_LastLoggedError)
+                    if (!string.IsNullOrEmpty(UnityConnectProvider.organizationKey) && errorMessage != s_LastLoggedError)
                     {
                         Debug.Log(errorMessage);
                         s_LastLoggedError = errorMessage;
@@ -129,7 +127,7 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
             {
                 // This outer catch handles any unexpected exceptions not caught by the inner retry loop.
                 var exceptionMessage = exception.ToString();
-                if (!string.IsNullOrEmpty(CloudProjectSettings.organizationKey) && exceptionMessage != s_LastLoggedException)
+                if (!string.IsNullOrEmpty(UnityConnectProvider.organizationKey) && exceptionMessage != s_LastLoggedException)
                 {
                     Debug.Log($"Exception after retry attempts: {exceptionMessage}");
                     s_LastLoggedException = exceptionMessage;
@@ -165,5 +163,33 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
 
         internal static Task<SettingsResult> SetTermsOfServiceAcceptance(bool value) =>
             Request(component => component.SetTermsOfServiceAcceptance(value));
+    }
+
+    static class HttpClientManager
+    {
+        static HttpClient s_Instance;
+
+        public static HttpClient instance
+        {
+            get { return s_Instance ??= new HttpClient(); }
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void Initialize()
+        {
+            s_Instance = null;
+            Application.quitting += Dispose;
+        }
+
+        static void Dispose()
+        {
+            Application.quitting -= Dispose;
+
+            if (s_Instance != null)
+            {
+                s_Instance.Dispose();
+                s_Instance = null;
+            }
+        }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.AI.Toolkit.Connect;
 using UnityEditor;
 using UnityEngine;
 
@@ -64,12 +65,12 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
                 try { traceID = Selection.activeObject ? AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(Selection.activeObject)) : traceID; }
                 catch { /* Ignored */ }
 
-                var logMessage = $"User ID: {CloudProjectSettings.userId}\n" +
-                    $"User Name: {CloudProjectSettings.userName}\n" +
-                    $"Organization Key: {CloudProjectSettings.organizationKey}\n" +
+                var logMessage = $"User ID: {UnityConnectProvider.userId}\n" +
+                    $"User Name: {UnityConnectProvider.userName}\n" +
+                    $"Organization Key: {UnityConnectProvider.organizationKey}\n" +
                     $"Organization ID: {CloudProjectSettings.organizationId}\n" +
                     $"Organization Name: {CloudProjectSettings.organizationName}\n" +
-                    $"Cloud Project ID: {CloudProjectSettings.projectId}\n" +
+                    $"Cloud Project ID: {UnityConnectProvider.projectId}\n" +
                     $"Cloud Project Name: {CloudProjectSettings.projectName}\n";
 
                 // Add all registered environment keys

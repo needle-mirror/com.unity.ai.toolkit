@@ -35,11 +35,14 @@ namespace Unity.AI.Toolkit.Accounts.Services.States
             AIDropdownBridge.ConnectProjectStateChanged(Refresh);
             AIDropdownBridge.ConnectStateChanged(Refresh);
             AIDropdownBridge.UserStateChanged(Refresh);
-            EditorApplication.focusChanged += focused =>
-            {
-                if (focused)
-                    Refresh();
-            };
+            if (!Application.isBatchMode)
+                EditorApplication.focusChanged += OnEditorFocusChanged;
+        }
+
+        void OnEditorFocusChanged(bool focused)
+        {
+            if (focused)
+                Refresh();
         }
 
         async Task RefreshInternal()

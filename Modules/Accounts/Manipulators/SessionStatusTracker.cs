@@ -48,26 +48,43 @@ namespace Unity.AI.Toolkit.Accounts.Manipulators
         {
             if (m_SetEnabled)
             {
+                // Determine the specific enabled state based on the tracker type.
+                bool shouldBeEnabled;
                 switch (this)
                 {
                     case AssistantSessionStatusTracker:
-                        EditorApplication.delayCall += () => target?.SetEnabled(Account.sessionStatus.IsUsable && Account.settings.AiAssistantEnabled);
+                        shouldBeEnabled = Account.sessionStatus.IsUsable && Account.settings.AiAssistantEnabled;
                         break;
                     case GeneratorsSessionStatusTracker:
-                        EditorApplication.delayCall += () => target?.SetEnabled(Account.sessionStatus.IsUsable && Account.settings.AiGeneratorsEnabled);
+                        shouldBeEnabled = Account.sessionStatus.IsUsable && Account.settings.AiGeneratorsEnabled;
                         break;
                     default:
-                        EditorApplication.delayCall += () => target?.SetEnabled(Account.sessionStatus.IsUsable);
+                        shouldBeEnabled = Account.sessionStatus.IsUsable;
                         break;
                 }
+
+                // Schedule a one-time update to set the enabled state.
+                EditorApplication.CallbackFunction updateCallback = null;
+                updateCallback = () =>
+                {
+                    EditorApplication.update -= updateCallback;
+                    target?.SetEnabled(shouldBeEnabled);
+                };
+                EditorApplication.update += updateCallback;
             }
             else if (m_SetVisibility)
             {
-                EditorApplication.delayCall += () =>
+                // Schedule a one-time update to set the visibility style.
+                EditorApplication.CallbackFunction updateCallback = null;
+                updateCallback = () =>
                 {
+                    EditorApplication.update -= updateCallback;
                     if (target != null)
+                    {
                         target.style.display = Account.sessionStatus.IsUsable ? DisplayStyle.Flex : DisplayStyle.None;
+                    }
                 };
+                EditorApplication.update += updateCallback;
             }
 
             m_Callback?.Invoke();
