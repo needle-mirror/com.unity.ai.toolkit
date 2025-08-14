@@ -7,6 +7,7 @@
         <Toggle name="network" label="Network"/>
         <EnumField name="cloud-connected" label="Cloud Connected"/>
         <EnumField name="signin" label="Sign in"/>
+        <Toggle name="broken" label="Break UnityConnect"/>
 
         <Foldout name="settings" value="true" text="Settings">
             <VisualElement name="settings-group">

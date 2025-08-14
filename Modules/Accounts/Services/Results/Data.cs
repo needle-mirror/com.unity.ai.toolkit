@@ -52,5 +52,6 @@ namespace Unity.AI.Toolkit.Accounts.Services.Data
         NotReady,
         Connected,
         NotConnected,
+        OfflineConnected,
     }
 }

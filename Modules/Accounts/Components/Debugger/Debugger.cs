@@ -43,10 +43,10 @@ namespace Unity.AI.Toolkit.Accounts.Components
             else
                 TrackDropdown();
 
-            var cloudConected = this.Q<EnumField>("cloud-connected");
-            cloudConected.Init(Account.cloudConnected.Value);
-            cloudConected.RegisterValueChangedCallback(evt => Account.cloudConnected.Value = (ProjectStatus)evt.newValue);
-            Account.cloudConnected.settings.Use(value => cloudConected.SetValueWithoutNotify(value));
+            var cloudConnected = this.Q<EnumField>("cloud-connected");
+            cloudConnected.Init(Account.cloudConnected.Value);
+            cloudConnected.RegisterValueChangedCallback(evt => Account.cloudConnected.Value = (ProjectStatus)evt.newValue);
+            Account.cloudConnected.settings.Use(value => cloudConnected.SetValueWithoutNotify(value));
 
             var network = this.Q<Toggle>("network");
             network.RegisterValueChangedCallback(evt => Account.network.Value = evt.newValue);
@@ -56,6 +56,10 @@ namespace Unity.AI.Toolkit.Accounts.Components
             signin.Init(Account.signIn.Value);
             signin.RegisterValueChangedCallback(evt => Account.signIn.settings.Value = (SignInStatus)evt.newValue);
             Account.signIn.settings.Use(value => signin.SetValueWithoutNotify(value));
+
+            var broken = this.Q<Toggle>("broken");
+            broken.RegisterValueChangedCallback(evt => Account.cloudConnected.SimulateBroken = evt.newValue);
+            Account.cloudConnected.settings.Use(_ => broken.SetValueWithoutNotify(Account.cloudConnected.SimulateBroken));
 
             var settings = this.Q<VisualElement>("settings-group");
             this.Q<Button>("fetch-settings").clicked += Account.settings.Refresh;

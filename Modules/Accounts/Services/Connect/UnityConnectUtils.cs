@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
+using Unity.AI.Toolkit.Accounts.Services;
 using UnityEditor;
 using UnityEngine;
 
@@ -164,6 +165,9 @@ namespace Unity.AI.Toolkit.Connect
         /// </summary>
         public static bool GetIsProjectInfoValidRaw()
         {
+            if (GetSimulatedBrokenState())
+                return false;
+
             try
             {
                 var projectInfo = GetProjectInfo?.GetValue(Instance);
@@ -179,6 +183,23 @@ namespace Unity.AI.Toolkit.Connect
                 return false;
             }
         }
+
+        static bool s_SimulateBrokenState;
+
+        /// <summary>
+        /// This is only for testing purposes.
+        /// </summary>
+        /// <param name="value"></param>
+        internal static void SimulateBrokenState(bool value)
+        {
+            s_SimulateBrokenState = value;
+            Account.cloudConnected.Refresh();
+        }
+
+        /// <summary>
+        /// This is only for testing purposes.
+        /// </summary>
+        internal static bool GetSimulatedBrokenState() => s_SimulateBrokenState;
 
         /// <summary>
         /// Gets the project validity status from cached data.

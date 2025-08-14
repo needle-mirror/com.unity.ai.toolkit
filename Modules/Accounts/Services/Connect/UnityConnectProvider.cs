@@ -57,7 +57,8 @@ namespace Unity.AI.Toolkit.Connect
     public static class UnityConnectProvider
     {
         static readonly int k_MainThreadId;
-        static string s_ValidCacheFilePath;
+        const string k_DefaultCacheFilePath = "Temp/UnityConnectCache.json";
+        static string s_ValidCacheFilePath = k_DefaultCacheFilePath;
         // The 'cachedInfo' is readonly, meaning we can't reassign the instance, but we can change its properties.
         internal static readonly ConnectInfoCache cachedInfo = new();
         static bool s_CacheLoadedFromFile;
@@ -415,7 +416,7 @@ namespace Unity.AI.Toolkit.Connect
         /// </summary>
         static string GetValidCacheFilePath()
         {
-            if (string.IsNullOrEmpty(s_ValidCacheFilePath))
+            if (string.IsNullOrEmpty(s_ValidCacheFilePath) || s_ValidCacheFilePath == k_DefaultCacheFilePath)
             {
                 var projectRoot = Path.GetDirectoryName(Application.dataPath);
                 if (projectRoot != null)
@@ -427,7 +428,7 @@ namespace Unity.AI.Toolkit.Connect
                 else
                 {
                     Debug.LogError("[UnityConnectUtils] Could not determine project root from Application.dataPath.");
-                    s_ValidCacheFilePath = "UnityConnectCache_LastValid.json";
+                    s_ValidCacheFilePath = k_DefaultCacheFilePath;
                 }
             }
             return s_ValidCacheFilePath;
