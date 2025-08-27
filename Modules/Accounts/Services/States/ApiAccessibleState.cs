@@ -7,7 +7,7 @@ namespace Unity.AI.Toolkit.Accounts.Services.States
 {
     public class ApiAccessibleState
     {
-        static bool s_HasLoggedWarning = false;
+        static bool s_HasLoggedWarning;
 
         public static bool IsAccessible => Account.network.IsAvailable && Account.signIn.IsSignedIn && Account.cloudConnected.IsConnected;
 
@@ -17,51 +17,28 @@ namespace Unity.AI.Toolkit.Accounts.Services.States
         /// subscription to poll for the required state, which keeps the async context alive.
         /// </summary>
         /// <returns>A Task that completes when the API is accessible or a timeout is reached.</returns>
-        public static Task<bool> WaitForCloudProjectSettings()
+        public static async Task<bool> WaitForCloudProjectSettings()
         {
+            if (Application.isBatchMode)
+                return false;
+            
             // If the API is already accessible, we can return immediately.
             if (IsAccessible)
+                return true;
+
+            var result = await EditorTask.WaitForCondition(() => IsAccessible, TimeSpan.FromSeconds(30));
+            if (!result && !s_HasLoggedWarning)
             {
-                return Task.FromResult(true);
+                if (!Application.isBatchMode)
+                    Debug.LogWarning("Account API did not become accessible within 30 seconds. This may be due to network issues or editor focus.");
+                s_HasLoggedWarning = true;
+            }
+            else if (result)
+            {
+                s_HasLoggedWarning = false;
             }
 
-            // Use a TaskCompletionSource to convert the event-based check into an awaitable Task.
-            var tcs = new TaskCompletionSource<bool>();
-            var timeout = DateTime.Now + TimeSpan.FromSeconds(30);
-
-            EditorApplication.CallbackFunction updateCallback = null;
-
-            // This delegate will be called on every editor update frame.
-            updateCallback = () =>
-            {
-                // Check for success condition
-                if (IsAccessible)
-                {
-                    s_HasLoggedWarning = false;
-                    tcs.TrySetResult(true); // Complete the task successfully
-                    EditorApplication.update -= updateCallback; // Unsubscribe to stop polling
-
-                    return;
-                }
-
-                // Check for timeout condition
-                if (DateTime.Now > timeout)
-                {
-                    if (!s_HasLoggedWarning)
-                    {
-                        if (!Application.isBatchMode)
-                            Debug.LogWarning("Account API did not become accessible within 30 seconds. This may be due to network issues or editor focus.");
-                        s_HasLoggedWarning = true;
-                    }
-                    tcs.TrySetResult(false); // Complete the task to unblock the caller
-                    EditorApplication.update -= updateCallback; // Unsubscribe to stop polling
-                }
-            };
-
-            // Start polling by subscribing to the editor's update loop.
-            EditorApplication.update += updateCallback;
-
-            return tcs.Task;
+            return result;
         }
 
         public event Action OnChange

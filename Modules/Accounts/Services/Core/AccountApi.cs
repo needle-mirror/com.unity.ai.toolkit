@@ -36,7 +36,7 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
 
         // These timeouts are NOT for network requests. They are external deadlines imposed on our async operations
         // to detect and escape from hangs in the Unity Editor's async scheduler.
-        static readonly int[] k_TimeoutDurations = { 2, 4, 8, 16, 16, 32, 32, 32, 32, 64, 64, 64, 64 };
+        static readonly int[] k_TimeoutDurations = { 2, 4, 8, 16, 32 };
 
         // Cache for in-progress tasks
         static readonly Dictionary<Type, Task> k_TaskCache = new();
@@ -71,7 +71,8 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
 
                 OperationResult<TResponse> result = null;
                 // This loop attempts the operation with increasingly longer deadlines.
-                for (var retryAttempt = 0; retryAttempt < k_TimeoutDurations.Length; retryAttempt++)
+                var retryAttempt = 0;
+                for (; retryAttempt < k_TimeoutDurations.Length; retryAttempt++)
                 {
                     try
                     {
@@ -88,9 +89,6 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
                             return result.Result.Value;
                         }
 
-                        // Log the trace for debugging purposes
-                        Debug.Log($"Attempt {retryAttempt + 1}/{k_TimeoutDurations.Length} - Trace Id {result.SdkTraceId} => {result.W3CTraceId}");
-
                         // The API call completed without hanging but returned a definitive failure (e.g., 401 Unauthorized, invalid plan).
                         // These are not transient errors, so there is no point in retrying. We break the loop to process the final result.
                         break;
@@ -101,8 +99,6 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
                         // An OperationCanceledException here means our self-imposed timeout was triggered.
                         // We interpret this not as a network timeout, but as a potential hang in the editor's async scheduler.
                         // We will let the loop continue to try again with a longer deadline.
-                        //if (Unsupported.IsDeveloperMode())
-                        //    Debug.Log($"Request timed out after {k_TimeoutDurations[retryAttempt]}s. Retrying with longer timeout...");
                     }
                 }
 
@@ -115,7 +111,9 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
                     if (result.Result.Error.AiResponseError == AiResultErrorEnum.ApiNoLongerSupported)
                         Account.settings.PackagesSupported = false;
 
-                    var errorMessage = $"Error after {k_TimeoutDurations.Length} attempts: {result.Result.Error.AiResponseError} - {result.Result.Error.Errors.FirstOrDefault()} -- Result type: {typeof(TResponse).Name} -- Url: {selectedEnvironment}";
+                    var errorMessage = result.Result.Error.AiResponseError == AiResultErrorEnum.RateLimitExceeded // typically means wrong url (staging vs prod)
+                        ? $"Account information returned {result.Result.Error.AiResponseError} on Url '{selectedEnvironment}'. Is the Url correct?\nTrace Id {result.SdkTraceId} => {result.W3CTraceId}"
+                        : $"Error after {retryAttempt + 1} attempt(s): {result.Result.Error.AiResponseError} - {result.Result.Error.Errors.FirstOrDefault()} -- Result type: {typeof(TResponse).Name} -- Url: {selectedEnvironment} -- Trace Id {result.SdkTraceId} => {result.W3CTraceId}";
                     if (!string.IsNullOrEmpty(UnityConnectProvider.organizationKey) && errorMessage != s_LastLoggedError)
                     {
                         Debug.Log(errorMessage);

@@ -76,10 +76,15 @@ namespace Unity.AI.Toolkit
         /// </summary>
         public static Task Yield()
         {
-            if (EditorThread.isMainThread && !isPlayingPaused && EditorAsyncKeepAliveScope.isFocused)
-                return YieldAsync();
+            // commented out because it doesn't seem reliable, especially on startup
+            //if (EditorThread.isMainThread && !isPlayingPaused && EditorAsyncKeepAliveScope.isFocused)
+            //    return YieldAsync();
 
-            return Delay(1);
+            var batchMode = false;
+            try { batchMode = Application.isBatchMode; }
+            catch (UnityException) { /* ignored */ }
+
+            return batchMode ? YieldAsync() : Delay(1);
         }
 
         static async Task YieldAsync() => await Task.Yield();
@@ -119,14 +124,25 @@ namespace Unity.AI.Toolkit
                 }
 
                 var tcs = new TaskCompletionSource<bool>();
-                var endTime = EditorApplication.timeSinceStartup + time.TotalSeconds;
+                double endTime;
+
+                var yieldInstead = false;
+                try { endTime = EditorApplication.timeSinceStartup + time.TotalSeconds; }
+                catch (UnityException)
+                {
+                    // We can't calculate a delay, so we'll treat this as a request
+                    // to yield and complete on the very next editor update frame.
+                    // This can happen when the Editor is serializing game objects.
+                    yieldInstead = true;
+                    endTime = 0;
+                }
 
                 EditorApplication.CallbackFunction updateCallback = null;
                 CancellationTokenRegistration registration = default;
 
                 updateCallback = () =>
                 {
-                    if (EditorApplication.timeSinceStartup >= endTime)
+                    if (yieldInstead || EditorApplication.timeSinceStartup >= endTime)
                     {
                         tcs.TrySetResult(true);
                         EditorApplication.update -= updateCallback;
@@ -412,6 +428,52 @@ namespace Unity.AI.Toolkit
                 }
             };
             EditorApplication.update += updateCallback;
+            return tcs.Task;
+        }
+
+        /// <summary>
+        /// Asynchronously waits for a condition. This method is safe to call
+        /// even when the Unity Editor is not in focus. It uses an EditorApplication.update
+        /// subscription to poll for the required state, which keeps the async context alive.
+        /// </summary>
+        /// <returns>A Task that completes when the condition is met or a timeout is reached.</returns>
+        public static Task<bool> WaitForCondition(Func<bool> condition, TimeSpan timeoutDuration)
+        {
+            // If the API is already accessible, we can return immediately.
+            if (condition())
+            {
+                return Task.FromResult(true);
+            }
+
+            // Use a TaskCompletionSource to convert the event-based check into an awaitable Task.
+            var tcs = new TaskCompletionSource<bool>();
+            var timeout = DateTime.Now + timeoutDuration;
+
+            EditorApplication.CallbackFunction updateCallback = null;
+
+            // This delegate will be called on every editor update frame.
+            updateCallback = () =>
+            {
+                // Check for success condition
+                if (condition())
+                {
+                    tcs.TrySetResult(true); // Complete the task successfully
+                    EditorApplication.update -= updateCallback; // Unsubscribe to stop polling
+
+                    return;
+                }
+
+                // Check for timeout condition
+                if (DateTime.Now > timeout)
+                {
+                    tcs.TrySetResult(false); // Complete the task to unblock the caller
+                    EditorApplication.update -= updateCallback; // Unsubscribe to stop polling
+                }
+            };
+
+            // Start polling by subscribing to the editor's update loop.
+            EditorApplication.update += updateCallback;
+
             return tcs.Task;
         }
     }
