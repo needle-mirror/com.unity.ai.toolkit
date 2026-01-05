@@ -36,9 +36,9 @@ namespace Unity.AI.Toolkit
 
         static CancellationTokenSource s_BackgroundTaskCancellation;
         static Task s_BackgroundTask;
-
+#if AI_TK_DEBUG_PROGRESS
         readonly int m_ProgressID;
-
+#endif
         internal static bool isFocused => s_IsFocused;
 
         [InitializeOnLoadMethod]
@@ -58,9 +58,10 @@ namespace Unity.AI.Toolkit
         {
             if (!Unsupported.IsDeveloperMode() || string.IsNullOrEmpty(name))
                 return;
-
+#if AI_TK_DEBUG_PROGRESS
             m_ProgressID = Progress.Start("Internal: " + name);
             Progress.Report(m_ProgressID, 0.5f);
+#endif
         }
 
         /// <summary>
@@ -81,8 +82,10 @@ namespace Unity.AI.Toolkit
         /// </summary>
         public void Dispose()
         {
+#if AI_TK_DEBUG_PROGRESS
             if (Unsupported.IsDeveloperMode() && Progress.Exists(m_ProgressID))
                 Progress.Remove(m_ProgressID);
+#endif
         }
     }
 }

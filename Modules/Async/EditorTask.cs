@@ -163,149 +163,6 @@ namespace Unity.AI.Toolkit
         }
 
         /// <summary>
-        /// Runs an action on a background thread. See <see cref="Run{TResult}(Func{Task{TResult}}, CancellationToken)"/> for details.
-        /// </summary>
-        public static Task Run(Action action) => Run(action, CancellationToken.None);
-
-        /// <summary>
-        /// Runs an action on a background thread. See <see cref="Run{TResult}(Func{Task{TResult}}, CancellationToken)"/> for details.
-        /// </summary>
-        public static Task Run(Action action, CancellationToken cancellationToken)
-        {
-            if (action == null)
-                throw new ArgumentNullException(nameof(action));
-
-            return Run<bool>(() =>
-            {
-                action();
-                return Task.FromResult(true);
-            }, cancellationToken);
-        }
-
-        /// <summary>
-        /// Runs an async function on a background thread. See <see cref="Run{TResult}(Func{Task{TResult}}, CancellationToken)"/> for details.
-        /// </summary>
-        public static Task<TResult> Run<TResult>(Func<Task<TResult>> function) => Run(function, CancellationToken.None);
-
-        /// <summary>
-        /// Runs an async function on a background thread, ensuring it does not hang in a paused editor.
-        /// Its paramount design goal is to *always* unblock the `await`-ing caller immediately upon cancellation.
-        /// It achieves this by using `EditorApplication.update` to monitor the underlying task. When a cancellation
-        /// is requested, the caller is unblocked, and a "best effort" signal is sent to the detached background work.
-        /// </summary>
-        /// <param name="function">The asynchronous function to execute.</param>
-        /// <param name="cancellationToken">The token to observe for cancellation.</param>
-        public static async Task<TResult> Run<TResult>(Func<Task<TResult>> function, CancellationToken cancellationToken)
-        {
-            if (function == null)
-                throw new ArgumentNullException(nameof(function));
-
-            // 1. Start the core task logic, which handles backgrounding and cancellation signals.
-            var coreTask = RunCore(function, cancellationToken);
-
-            // 2. Create a TaskCompletionSource to represent the completion of our monitoring.
-            // This is the key to surviving a paused editor, as the `update` event continues to fire.
-            var monitorTcs = new TaskCompletionSource<bool>();
-            EditorApplication.CallbackFunction monitorCallback = null;
-
-            monitorCallback = () =>
-            {
-                // 3. When the inner task completes, we stop monitoring and signal our monitor task.
-                if (coreTask.IsCompleted)
-                {
-                    EditorApplication.update -= monitorCallback; // Clean up the monitor
-                    monitorTcs.TrySetResult(true); // Signal that monitoring is finished
-                }
-            };
-
-            EditorApplication.update += monitorCallback;
-
-            // 4. Wait for our monitor to tell us the task is complete.
-            await monitorTcs.Task;
-
-            // 5. Now that we KNOW the task is complete, we can safely await it.
-            // This will not hang. It will either return the result or throw the correct
-            // exception (TaskCanceledException or the one from IsFaulted).
-            return await coreTask;
-        }
-
-        /// <summary>
-        /// This is the core implementation that runs a task with a robust cancellation and abandonment-detection policy.
-        /// It is wrapped by the public `Run` method which adds the editor-pump monitoring layer.
-        /// </summary>
-        static Task<TResult> RunCore<TResult>(Func<Task<TResult>> function, CancellationToken cancellationToken)
-        {
-            if (function == null)
-                throw new ArgumentNullException(nameof(function));
-
-            var tcs = new TaskCompletionSource<TResult>();
-            if (cancellationToken.IsCancellationRequested)
-            {
-                tcs.SetCanceled();
-                return tcs.Task;
-            }
-
-            var abandonmentLogCts = new CancellationTokenSource();
-            CancellationTokenRegistration callerTokenRegistration = default;
-
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    var result = await Task.Run(function, cancellationToken).ConfigureAwait(false);
-                    await EditorThread.EnsureMainThreadAsync();
-                    tcs.TrySetResult(result);
-                }
-                catch (Exception ex)
-                {
-                    if (ex is OperationCanceledException)
-                    {
-                        // This try-catch is a safeguard against race conditions where the TCS
-                        // might already be cancelled by the time an exception is processed.
-                        try { tcs.TrySetCanceled(cancellationToken); } catch { /* ignored */ }
-                    }
-                    else
-                    {
-                        // This try-catch is a safeguard against race conditions where the TCS
-                        // might already be cancelled by the time an exception is processed.
-                        try { tcs.TrySetException(ex); } catch { /* ignored */ }
-                    }
-                }
-                finally
-                {
-                    try { abandonmentLogCts.Cancel(); } catch (ObjectDisposedException) { /* Ignored */ }
-                    #pragma warning disable CS1690
-                    try { callerTokenRegistration.Dispose(); } catch { /* ignored */ }
-                    #pragma warning restore CS1690
-                }
-            });
-
-            callerTokenRegistration = cancellationToken.Register(() =>
-            {
-                // Unblock the caller immediately.
-                tcs.TrySetCanceled(cancellationToken);
-
-                // Start a background timer to detect if the cancelled task was non-cooperative.
-                _ = Task.Run(async () =>
-                {
-                    try
-                    {
-                        // We must use our own robust Delay, as Task.Delay can hang in the editor.
-                        await Delay(k_AbandonmentTimeoutMilliseconds, abandonmentLogCts.Token);
-                    }
-                    catch (OperationCanceledException) { /* This is the expected success path. */ }
-                    catch (ObjectDisposedException) { /* This is the expected success path. */ }
-                    //if (Unsupported.IsDeveloperMode())
-                    //    Debug.Log("An EditorTask was cancelled, but the background work did not complete within 5 seconds. The task may be non-cooperative and has been abandoned.");
-                });
-            });
-
-            tcs.Task.ContinueWith(_ => abandonmentLogCts.Dispose(), TaskContinuationOptions.ExecuteSynchronously);
-
-            return tcs.Task;
-        }
-
-        /// <summary>
         /// Dispatches an action on the main thread. Uses the editor's update loop for scheduling,
         /// making it safe to `await` even in a paused editor.
         /// </summary>
@@ -389,6 +246,38 @@ namespace Unity.AI.Toolkit
         /// Dispatches an asynchronous action on the main thread that returns a result. See <see cref="RunOnMainThread(Action)"/> for details.
         /// </summary>
         public static Task<TResult> RunOnMainThread<TResult>(Func<Task<TResult>> asyncAction) => RunOnMainThread(asyncAction, CancellationToken.None);
+
+        /// <summary>
+        /// Dispatches a synchronous action on the main thread that returns a result. Uses the editor's update loop for scheduling,
+        /// making it safe to `await` even in a paused editor.
+        /// </summary>
+        public static Task<TResult> RunOnMainThread<TResult>(Func<TResult> action)
+        {
+            if (action == null)
+                throw new ArgumentNullException(nameof(action));
+
+            if (EditorThread.isMainThread)
+            {
+                return Task.FromResult(action());
+            }
+
+            var tcs = new TaskCompletionSource<TResult>();
+            EditorApplication.CallbackFunction updateCallback = null;
+            updateCallback = () =>
+            {
+                EditorApplication.update -= updateCallback;
+                try
+                {
+                    tcs.TrySetResult(action());
+                }
+                catch (Exception ex)
+                {
+                    tcs.TrySetException(ex);
+                }
+            };
+            EditorApplication.update += updateCallback;
+            return tcs.Task;
+        }
 
         /// <summary>
         /// Dispatches an asynchronous action on the main thread that returns a result. Uses the editor's update loop for scheduling,

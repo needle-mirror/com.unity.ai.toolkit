@@ -1,6 +1,7 @@
 using System;
 using Unity.AI.Toolkit.Accounts.Services;
 using Unity.AI.Toolkit.Accounts.Services.Data;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -20,6 +21,8 @@ namespace Unity.AI.Toolkit.Accounts.Components
         AccountLoadDelayedBanner m_AccountLoadDelayedBanner;
         RegionBanner m_RegionBanner;
         PackagesUnsupportedBanner m_UnsupportedBanner;
+        AIToolkitDisabledBanner m_AIToolkitDisabledBanner;
+        LowPointsBanner m_LowPointsBanner;
 
         protected VisualElement m_Current;
 
@@ -40,6 +43,9 @@ namespace Unity.AI.Toolkit.Accounts.Components
         // ReSharper disable once VirtualMemberNeverOverridden.Global
         protected virtual VisualElement CurrentView()
         {
+            const string disableAIToolkitAccountCheckKey = "disable-ai-toolkit-account-check";
+            var disableAIToolkitAccountCheck = EditorPrefs.GetBool(disableAIToolkitAccountCheckKey, false);
+
             VisualElement current = null;
             if (!Account.network.IsAvailable)
                 current = m_NoNetwork ??= new();
@@ -59,16 +65,25 @@ namespace Unity.AI.Toolkit.Accounts.Components
                 current = m_ConnectToCloudBanner ??= new();
             else if (Account.cloudConnected.Value == ProjectStatus.NotReady)
                 current = m_ConnectToCloudDelayedBanner ??= new ();
-            else if (Account.settings.Value == null)
-                current = m_AccountLoadDelayedBanner ??= new ();
-            else if (!Account.settings.AiAssistantEnabled && !Account.settings.AiGeneratorsEnabled)
-                current = m_AiDisabledBanner ??= new();
-            else if (!Account.legalAgreement.IsAgreed)
-                current = m_AIDisabledLegalBanner ??= new();
-            else if (!Account.settings.AiAssistantEnabled && this is AssistantSessionStatusBanner)
-                current = m_AIDisabledPackageBanner ??= new();
-            else if (!Account.settings.AiGeneratorsEnabled && this is GeneratorsSessionStatusBanner)
-                current = m_AIDisabledPackageBanner ??= new();
+            else if (!disableAIToolkitAccountCheck)
+            {
+                if (Account.settings.Value == null)
+                    current = m_AccountLoadDelayedBanner ??= new ();
+                else if (!Account.settings.AiAssistantEnabled && !Account.settings.AiGeneratorsEnabled)
+                    current = m_AiDisabledBanner ??= new();
+                else if (!Account.legalAgreement.IsAgreed)
+                    current = m_AIDisabledLegalBanner ??= new();
+                else if (!Account.settings.AiAssistantEnabled && this is AssistantSessionStatusBanner)
+                    current = m_AIDisabledPackageBanner ??= new();
+                else if (!Account.settings.AiGeneratorsEnabled && this is GeneratorsSessionStatusBanner)
+                    current = m_AIDisabledPackageBanner ??= new();
+                else if (Account.pointsBalance.LowPoints)
+                    current = m_LowPointsBanner ??= new ();
+            }
+            else if(this is AssistantSessionStatusBanner)
+            {
+                current = m_AIToolkitDisabledBanner ??= new ();
+            }
             return current;
         }
 

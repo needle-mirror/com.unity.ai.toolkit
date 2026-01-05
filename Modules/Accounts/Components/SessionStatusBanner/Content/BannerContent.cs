@@ -11,12 +11,16 @@ namespace Unity.AI.Toolkit.Accounts.Components
         public VisualElement content = new();
 
         public BasicBannerContent(string message, LabelLink link) : this(message, new List<LabelLink> {link}) { }
+
         public BasicBannerContent(string message = "", IEnumerable<LabelLink> links = null)
+            : this(message, links, false) { }
+
+        public BasicBannerContent(string message, IEnumerable<LabelLink> links, bool useInfoIcon)
         {
             Init();
 
             content.AddToClassList("banner-content");
-            content.Add(CreateWarningIcon());
+            content.Add(useInfoIcon ? CreateInfoIcon() : CreateWarningIcon());
             content.Add(new RichLabel(message, links));
         }
 
@@ -67,6 +71,13 @@ namespace Unity.AI.Toolkit.Accounts.Components
             var warningIcon = new Image { image = EditorGUIUtility.IconContent("console.warnicon").image as Texture2D };
             warningIcon.AddToClassList("warning-icon");
             return warningIcon;
+        }
+
+        protected static Image CreateInfoIcon()
+        {
+            var infoIcon = new Image { image = EditorGUIUtility.IconContent("console.infoicon").image as Texture2D };
+            infoIcon.AddToClassList("info-icon");
+            return infoIcon;
         }
     }
 }

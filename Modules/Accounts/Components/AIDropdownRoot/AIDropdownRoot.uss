@@ -4,7 +4,9 @@ AIDropdownRoot {
     padding: 8px;
 }
 
-.warning-icon {
+.info-icon,
+.warning-icon
+{
     max-height: 32px;
     max-width: 32px;
     flex-shrink: 0;

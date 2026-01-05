@@ -18,6 +18,8 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
 
         public static void ViewBundles() => Application.OpenURL("https://cloud.unity.com/home/ai");
 
+        public static void GetPoints() => Application.OpenURL("https://create.unity.com/unity-ai-beta-points-request");
+
         public static void ViewDocumentation()
         {
             var versionParts = Application.unityVersion.Split('.');

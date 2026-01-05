@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
@@ -14,32 +15,38 @@ using Unity.AI.Toolkit.Accounts.Services.States;
 using Unity.AI.Toolkit.Connect;
 using UnityEditor;
 using UnityEngine;
+using Logger = Unity.AI.Toolkit.Accounts.Services.Sdk.Logger;
 
 namespace Unity.AI.Toolkit.Accounts.Services.Core
 {
-    static class AccountApi
+    public static class AccountApi
     {
         [InitializeOnLoadMethod]
-        static void InitializeEnvironmentKeys() => Environment.RegisterEnvironmentKey(k_AccountEnvironmentKey, "Account Environment", _ => {
-            Account.settings.Refresh();
-            Account.pointsBalance.Refresh();
-        });
+        static void InitializeEnvironmentKeys()
+        {
+            Environment.RegisterEnvironmentKey(accountEnvironmentKey, "Account Environment", _ =>
+            {
+                Account.settings.Refresh();
+                Account.pointsBalance.Refresh();
+            });
+            InitializeCacheTimer();
+        }
 
-        const string k_AccountEnvironmentKey = "AI_Toolkit_Account_Environment";
+        public const string accountEnvironmentKey = "AI_Toolkit_Account_Environment";
 
-        public static string selectedEnvironment => Environment.GetSelectedEnvironment(k_AccountEnvironmentKey);
+        public static string selectedEnvironment => Environment.GetSelectedEnvironment(accountEnvironmentKey);
 
         static string s_LastLoggedError = string.Empty;
         static string s_LastLoggedException = string.Empty;
 
         static readonly string k_SessionTraceId = Guid.NewGuid().ToString();
 
-        // These timeouts are NOT for network requests. They are external deadlines imposed on our async operations
-        // to detect and escape from hangs in the Unity Editor's async scheduler.
-        static readonly int[] k_TimeoutDurations = { 2, 4, 8, 16, 32 };
+        static readonly int[] k_TimeoutDurationsDisconnect = { 2, 4, 8 };
+        static readonly int[] k_TimeoutDurationsReconnect = { 4, 8, 16, 32 };
 
         // Cache for in-progress tasks
-        static readonly Dictionary<Type, Task> k_TaskCache = new();
+        static readonly ConcurrentDictionary<Type, Task> k_TaskCache = new();
+        static Timer s_CacheClearTimer;
 
         class TraceIdProvider : ITraceIdProvider
         {
@@ -50,38 +57,88 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
             public Task<string> GetTraceId() => Task.FromResult(m_SessionId);
         }
 
+        class PackageInfoProvider : IPackageInfoProvider
+        {
+            static UnityEditor.PackageManager.PackageInfo s_PackageInfo;
+            public string PackageName { get; }
+            public string PackageVersion { get; }
+
+            public PackageInfoProvider()
+            {
+                if (s_PackageInfo == null)
+                {
+                    s_PackageInfo = UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(PackageInfoProvider).Assembly);
+                }
+
+                if (s_PackageInfo != null)
+                {
+                    PackageName = s_PackageInfo.name;
+                    PackageVersion = s_PackageInfo.version;
+                }
+            }
+        }
+
+        static void InitializeCacheTimer()
+        {
+            s_CacheClearTimer = new Timer(ClearStaleCache, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+            EditorApplication.quitting += DisposeCacheTimer;
+        }
+
+        static void ClearStaleCache(object state)
+        {
+            if (k_TaskCache.IsEmpty)
+                return;
+
+            // Get the key-value pairs of completed tasks. This is a snapshot.
+            var staleEntries = k_TaskCache.Where(kvp => kvp.Value.IsCompleted).ToList();
+            foreach (var entry in staleEntries)
+            {
+                // This will only remove the entry if the key still points to the exact same
+                // completed task instance. If another thread has replaced it with a new
+                // task, this Remove operation will correctly do nothing.
+                ((ICollection<KeyValuePair<Type, Task>>)k_TaskCache).Remove(entry);
+            }
+        }
+
+        static void DisposeCacheTimer()
+        {
+            s_CacheClearTimer?.Dispose();
+            s_CacheClearTimer = null;
+            EditorApplication.quitting -= DisposeCacheTimer;
+        }
+
         /// <summary>
         /// Performs an API request with a multi-layered retry strategy.
-        /// NOTE: The for-loop in this method is NOT a standard network retry loop.
-        /// The inner SDK handles transient network errors (e.g., 503s) automatically.
-        /// This outer loop is a safeguard against a known Unity Editor issue where async/await tasks
-        /// can hang indefinitely. We impose our own escalating timeouts to detect such hangs and
-        /// retry the entire operation from scratch.
         /// </summary>
-        static async Task<TResponse> Request<TResponse>(Func<IOrganizationComponent, Task<OperationResult<TResponse>>> callback) where TResponse : class
+        static async Task<TResponse> Request<TResponse>(Func<IOrganizationComponent, CancellationToken, Task<OperationResult<TResponse>>> callback) where TResponse : class
         {
             try
             {
+                // hysteresis
+                var timeoutDurations = Account.settings?.Value == null ? k_TimeoutDurationsReconnect : k_TimeoutDurationsDisconnect;
+
                 await ApiAccessibleState.WaitForCloudProjectSettings();
 
                 using var editorFocus = new EditorAsyncKeepAliveScope("Verifying account settings.");
 
-                var builder = Builder.Build(UnityConnectProvider.organizationKey, UnityConnectProvider.userId, UnityConnectProvider.projectId, HttpClientManager.instance, selectedEnvironment, new Logger(), new Auth(), new TraceIdProvider(k_SessionTraceId));
-                var component = builder.OrganizationComponent();
-
                 OperationResult<TResponse> result = null;
                 // This loop attempts the operation with increasingly longer deadlines.
                 var retryAttempt = 0;
-                for (; retryAttempt < k_TimeoutDurations.Length; retryAttempt++)
+                for (; retryAttempt < timeoutDurations.Length; retryAttempt++)
                 {
                     try
                     {
-                        // Create a CancellationToken that acts as our "hang detector" for this attempt.
-                        using var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(k_TimeoutDurations[retryAttempt]));
+                        var timeSpan = TimeSpan.FromSeconds(timeoutDurations[retryAttempt]);
+                        var builder = Builder.Build(orgId: UnityConnectProvider.organizationKey, userId: UnityConnectProvider.userId,
+                            projectId: UnityConnectProvider.projectId, httpClient: HttpClientManager.instance, baseUrl: selectedEnvironment,
+                            logger: new Logger(), unityAuthenticationTokenProvider: new Auth(), traceIdProvider: new TraceIdProvider(k_SessionTraceId),
+                            defaultOperationTimeout: timeSpan, packageInfoProvider: new PackageInfoProvider());
+                        var component = builder.OrganizationComponent();
+
+                        using var tokenSource = new CancellationTokenSource(timeSpan);
                         var timeoutToken = tokenSource.Token;
 
-                        // We run the entire SDK callback within our robust EditorTask, but with the external timeoutToken.
-                        result = await EditorTask.Run(() => callback(component), timeoutToken);
+                        result = await callback(component, timeoutToken);
 
                         if (result.Result.IsSuccessful)
                         {
@@ -89,16 +146,18 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
                             return result.Result.Value;
                         }
 
-                        // The API call completed without hanging but returned a definitive failure (e.g., 401 Unauthorized, invalid plan).
-                        // These are not transient errors, so there is no point in retrying. We break the loop to process the final result.
-                        break;
+                        if (result.Result.Error.AiResponseError is AiResultErrorEnum.ApiNoLongerSupported or AiResultErrorEnum.UnavailableForLegalReasons)
+                        {
+                            // Definitive failure: No point in retrying further.
+                            break;
+                        }
+
+                        // retry after waiting for the remainder of the time span (timeoutToken) or thirty seconds
+                        await EditorTask.Delay(TimeSpan.FromSeconds(30), timeoutToken);
                     }
                     catch (OperationCanceledException)
                     {
-                        // This catch block is the core of our editor-hang safeguard.
-                        // An OperationCanceledException here means our self-imposed timeout was triggered.
-                        // We interpret this not as a network timeout, but as a potential hang in the editor's async scheduler.
-                        // We will let the loop continue to try again with a longer deadline.
+                        // retry
                     }
                 }
 
@@ -138,20 +197,27 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
         static Task<T> GetOrCreateCachedTask<T>(Func<Task<T>> taskFactory) where T : class
         {
             var type = typeof(T);
+            var task = k_TaskCache.GetOrAdd(type, _ => taskFactory());
 
-            if (k_TaskCache.TryGetValue(type, out var existingTask) && !existingTask.IsCompleted)
-            {
-                return (Task<T>)existingTask;
-            }
+            // If the task from the cache was not completed, so we can safely return it for the caller to await.
+            if (!task.IsCompleted)
+                return (Task<T>)task;
 
+            // The task is stale. We will try to replace it with a new one.
+            // This is an atomic operation that only succeeds if the current value
+            // in the dictionary is still the stale 'task' we just retrieved.
             var newTask = taskFactory();
-            k_TaskCache[type] = newTask;
+            if (k_TaskCache.TryUpdate(type, newTask, task))
+                return newTask;
 
-            return newTask;
+            // We lost the race. Another thread already replaced the stale task.
+            // The dictionary now contains a fresh task, so we get it again.
+            // GetOrAdd is the safest way to do this, as the factory won't be called.
+            return (Task<T>)k_TaskCache.GetOrAdd(type, _ => taskFactory());
         }
 
-        internal static Func<Task<SettingsResult>> GetSettingsDelegate = () => Request(component => component.GetSettings());
-        internal static Func<Task<PointsBalanceResult>> GetPointsDelegate = () => Request(component => component.GetPointsBalance());
+        internal static Func<Task<SettingsResult>> GetSettingsDelegate = () => Request((component, ct) => component.GetSettings(cancellationToken: ct));
+        internal static Func<Task<PointsBalanceResult>> GetPointsDelegate = () => Request((component, ct) => component.GetPointsBalance(cancellationToken: ct));
 
         internal static Task<SettingsResult> GetSettings() =>
             GetOrCreateCachedTask(GetSettingsDelegate);
@@ -160,7 +226,7 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
             GetOrCreateCachedTask(GetPointsDelegate);
 
         internal static Task<SettingsResult> SetTermsOfServiceAcceptance(bool value) =>
-            Request(component => component.SetTermsOfServiceAcceptance(value));
+            Request((component, ct) => component.SetTermsOfServiceAcceptance(value, cancellationToken: ct));
     }
 
     static class HttpClientManager

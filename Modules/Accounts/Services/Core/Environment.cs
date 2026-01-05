@@ -9,15 +9,10 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
     public static class Environment
     {
         // Environment URL constants
-#if UNITY_AI_OPEN_BETA
-        public const string prodEnvironment = "https://generators-beta.ai.unity.com";
-        public const string stagingEnvironment = "https://generators-stg-beta.ai.unity.com";
-        public const string testEnvironment = "https://generators-test-beta.ai.unity.com";
-#else
         public const string prodEnvironment = "https://generators.ai.unity.com";
         public const string stagingEnvironment = "https://generators-stg.ai.unity.com";
         public const string testEnvironment = "https://generators-test.ai.unity.com";
-#endif
+        public const string devEnvironment = "https://generators-dev.ai.unity.com";
         public const string localEnvironment = "https://localhost:5050";
 
         // Define delegate for environment change callback
@@ -52,6 +47,40 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
             return Unsupported.IsDeveloperMode()
                 ? EditorPrefs.GetString(key, prodEnvironment)
                 : prodEnvironment;
+        }
+
+        /// <summary>
+        /// Set the currently selected environment for a specific key
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="newEnvironment"></param>
+        public static void SetSelectedEnvironment(string key, string newEnvironment)
+        {
+            if (string.IsNullOrEmpty(key))
+                return;
+
+            if (!string.IsNullOrWhiteSpace(newEnvironment))
+            {
+                EditorPrefs.SetString(key, newEnvironment);
+
+                // Invoke callback if exists
+                if (k_EnvironmentCallbacks.TryGetValue(key, out var callback))
+                {
+                    try { callback(newEnvironment); }
+                    catch (Exception e) { Debug.LogError($"Failed to set environment for {key}: {e.Message}"); }
+                }
+            }
+            else
+            {
+                EditorPrefs.DeleteKey(key);
+
+                // Invoke callback with default environment
+                if (k_EnvironmentCallbacks.TryGetValue(key, out var callback))
+                {
+                    try { callback(prodEnvironment); }
+                    catch (Exception e) { Debug.LogError($"Failed to reset environment for {key}: {e.Message}"); }
+                }
+            }
         }
 
         class EnvironmentInputWindow : EditorWindow
@@ -134,29 +163,7 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
                         if (!m_EnvironmentStates[key])
                             continue;
 
-                        if (!string.IsNullOrWhiteSpace(m_InputText))
-                        {
-                            var newEnvironment = m_InputText;
-                            EditorPrefs.SetString(key, newEnvironment);
-
-                            // Invoke callback if exists
-                            if (k_EnvironmentCallbacks.TryGetValue(key, out var callback))
-                            {
-                                try { callback(newEnvironment); }
-                                catch (Exception e) { Debug.LogError($"Failed to set environment for {key}: {e.Message}"); }
-                            }
-                        }
-                        else
-                        {
-                            EditorPrefs.DeleteKey(key);
-
-                            // Invoke callback with default environment
-                            if (k_EnvironmentCallbacks.TryGetValue(key, out var callback))
-                            {
-                                try { callback(prodEnvironment); }
-                                catch (Exception e) { Debug.LogError($"Failed to reset environment for {key}: {e.Message}"); }
-                            }
-                        }
+                        SetSelectedEnvironment(key, m_InputText);
                     }
                     Close();
                 }
@@ -164,14 +171,7 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
                 {
                     foreach (var key in k_RegisteredEnvironmentKeys.Keys)
                     {
-                        EditorPrefs.DeleteKey(key);
-
-                        // Invoke callback with default environment
-                        if (k_EnvironmentCallbacks.TryGetValue(key, out var callback))
-                        {
-                            try { callback(prodEnvironment); }
-                            catch (Exception e) { Debug.LogError($"Failed to reset environment for {key}: {e.Message}"); }
-                        }
+                        SetSelectedEnvironment(key, null);
                     }
                     Close();
                 }

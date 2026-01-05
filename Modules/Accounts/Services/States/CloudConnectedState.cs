@@ -64,7 +64,7 @@ namespace Unity.AI.Toolkit.Accounts.Services.States
                 Value = ProjectStatus.NotReady;
             }
 
-            if (Unsupported.IsDeveloperMode())
+            if (UnityConnectProvider.unityConnectLogLevel > 0)
                 Debug.Log($"[CloudConnectedState] Refreshed. isLiveProjectInfoValid: {isLiveProjectInfoValid}, hasCachedProjectData: {hasCachedProjectData}, Current Value: {Value}");
         }
     }

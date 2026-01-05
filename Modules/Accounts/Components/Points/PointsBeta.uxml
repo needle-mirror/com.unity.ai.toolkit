@@ -6,6 +6,6 @@
             <Label text="" class="points-label"/>
             <Label text="Points"/>
         </VisualElement>
-        <Label text="Free During Beta" tooltip="Points replenish automatically during the Beta" class="points-free-beta"/>
+        <Label text="In Beta" tooltip="Your points refresh automatically each week during the Beta" class="points-free-beta"/>
     </VisualElement>
 </UXML>

@@ -16,6 +16,7 @@ namespace Unity.AI.Toolkit.Accounts.Services.States
         public Task RefreshPointsBalance() => RefreshInternal();
 
         public bool HasAny => Value?.PointsAvailable > 0;
+        public bool LowPoints => Value != null && Value.PointsAllocated > 0 && Value.PointsAvailable <= Value.PointsAllocated * 0.1d; /*10%*/
 
         public PointsBalanceState()
         {
@@ -25,6 +26,8 @@ namespace Unity.AI.Toolkit.Accounts.Services.States
             AIDropdownBridge.ConnectStateChanged(Refresh);
             AIDropdownBridge.UserStateChanged(Refresh);
         }
+        
+        public bool CanAfford(int cost) => Value != null && Value.PointsAvailable >= cost;        
 
         async Task RefreshInternal()
         {

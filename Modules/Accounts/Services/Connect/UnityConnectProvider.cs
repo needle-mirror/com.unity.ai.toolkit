@@ -131,7 +131,7 @@ namespace Unity.AI.Toolkit.Connect
         static UnityConnectProvider()
         {
             k_MainThreadId = Thread.CurrentThread.ManagedThreadId;
-            if (Unsupported.IsDeveloperMode())
+            if (unityConnectLogLevel > 0)
                 Debug.Log($"[DevLog-UnityConnectUtils] Static constructor fired. Main thread ID captured: {k_MainThreadId}");
         }
 
@@ -228,7 +228,7 @@ namespace Unity.AI.Toolkit.Connect
             }
             finally
             {
-                if (Unsupported.IsDeveloperMode())
+                if (unityConnectLogLevel > 0)
                 {
                     LogWithDeduplication(state, state.hasException, !state.isRawValid && !state.mergedPartialData);
                 }
@@ -432,6 +432,28 @@ namespace Unity.AI.Toolkit.Connect
                 }
             }
             return s_ValidCacheFilePath;
+        }
+
+        const string k_InternalMenu = "internal:";
+        const string k_UnityConnectLogLevelMenu = "AI Toolkit/Internals/Log All UnityConnect Provider Messages";
+        const string k_UnityConnectLogLevelKey = "AI_Toolkit_UnityConnect_Log_Level";
+
+        internal static int unityConnectLogLevel
+        {
+            get => EditorPrefs.GetInt(k_UnityConnectLogLevelKey, 0);
+            set => EditorPrefs.SetInt(k_UnityConnectLogLevelKey, value);
+        }
+
+        [MenuItem(k_InternalMenu + k_UnityConnectLogLevelMenu, false, 1020)]
+        static void ToggleUnityConnectLogLevel()
+        {
+            unityConnectLogLevel = unityConnectLogLevel == 1 ? 0 : 1;
+        }
+        [MenuItem(k_InternalMenu + k_UnityConnectLogLevelMenu, true, 1020)]
+        static bool ValidateUnityConnectLogLevel()
+        {
+            Menu.SetChecked(k_UnityConnectLogLevelMenu, unityConnectLogLevel == 1);
+            return true;
         }
     }
 }
