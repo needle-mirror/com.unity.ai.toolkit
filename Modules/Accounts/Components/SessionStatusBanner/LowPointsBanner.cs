@@ -7,11 +7,11 @@ namespace Unity.AI.Toolkit.Accounts.Components
     [UxmlElement]
     public partial class LowPointsBanner : BasicBannerContent
     {
-        const string k_Tooltip = "Your points balance is running low. Request a top-up to continue generating content without interruption.";
+        const string k_Tooltip = "Only 10% of your org’s points remain. Request a points top-up to continue generating content without interruption.";
 
         public LowPointsBanner()
             : base(
-                "Points balance low. <link=get-points><color=#7BAEFA>Request a points top-up</color></link> to keep using Unity AI. Your points refresh automatically each week.",
+                "Only 10% of your org’s points remain. <link=get-points><color=#7BAEFA>Request a points top-up</color></link>. Points refresh automatically each week.",
                 new[] { new LabelLink("get-points", AccountLinks.GetPoints) },
             true)
         {

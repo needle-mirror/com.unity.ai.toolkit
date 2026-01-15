@@ -122,7 +122,13 @@ namespace Unity.AI.Toolkit
 
         internal static void SetSelection(int instanceID)
         {
+#if UNITY_6000_4_OR_NEWER
+            // Unity 6.4 and above use EntityId parameter
+            typeInfo.objectSelectorSetSelection.Invoke(null, new object[] { (EntityId)instanceID });
+#else
+            // Unity 6000.3 and below use int parameter
             typeInfo.objectSelectorSetSelection.Invoke(null, new object[] { instanceID });
+#endif
         }
 
         internal static Type[] GetAllowedTypes()

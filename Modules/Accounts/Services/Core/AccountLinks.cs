@@ -25,7 +25,7 @@ namespace Unity.AI.Toolkit.Accounts.Services.Core
             var versionParts = Application.unityVersion.Split('.');
             Application.OpenURL(versionParts.Length >= 2
                 ? $"https://docs.unity3d.com/{versionParts[0]}.{versionParts[1]}/Documentation/Manual/ai-menu.html"
-                : "https://docs.unity3d.com/6000.2/Documentation/Manual/ai-menu.html");
+                : "https://docs.unity3d.com/6000.3/Documentation/Manual/ai-menu.html");
         }
 
         public static void OpenInPackageManager() =>
