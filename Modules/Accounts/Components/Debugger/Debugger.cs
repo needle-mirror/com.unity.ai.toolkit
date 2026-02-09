@@ -111,6 +111,15 @@ namespace Unity.AI.Toolkit.Accounts.Components
             packagesSupported.RegisterValueChangedCallback(evt => Account.settings.PackagesSupported = evt.newValue);
             Account.settings.packagesSupported.Use(value => packagesSupported.SetValueWithoutNotify(value));
 
+            var mcpProEnabled = this.Q<Toggle>("mcp-pro-enabled");
+            mcpProEnabled.RegisterValueChangedCallback(evt => Account.settings.Value = Account.settings.Value with {IsMcpProEnabled = evt.newValue});
+            Account.settings.settings.Use(value =>
+            {
+                if (value == null)
+                    return;
+                mcpProEnabled.SetValueWithoutNotify(value.IsMcpProEnabled);
+            });
+
             var points = this.Q<VisualElement>("points-group");
             this.Q<Button>("fetch-points").clicked += Account.pointsBalance.Refresh;
             this.Q<Button>("clear-points").clicked += () => Account.pointsBalance.Value = null;

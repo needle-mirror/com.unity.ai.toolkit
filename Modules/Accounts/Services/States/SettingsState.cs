@@ -28,6 +28,7 @@ namespace Unity.AI.Toolkit.Accounts.Services.States
         public bool AiGeneratorsEnabled => Value?.IsAiGeneratorsEnabled ?? false;
         public bool IsDataSharingEnabled => Value?.IsDataSharingEnabled ?? false;
         public bool IsTermsOfServiceAccepted => Value?.IsTermsOfServiceAccepted ?? false;
+        public bool IsMcpProEnabled => Value?.IsMcpProEnabled ?? false;
 
         Timer m_NetworkPollTimer;
         Task m_PollingTask;

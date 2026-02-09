@@ -27,7 +27,7 @@ namespace Unity.AI.Toolkit.Accounts.Services.States
             AIDropdownBridge.UserStateChanged(Refresh);
         }
         
-        public bool CanAfford(int cost) => Value != null && Value.PointsAvailable >= cost;        
+        public bool CanAfford(long cost) => Value != null && Value.PointsAvailable >= cost;        
 
         async Task RefreshInternal()
         {

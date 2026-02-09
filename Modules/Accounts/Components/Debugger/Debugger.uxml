@@ -18,6 +18,7 @@
                 <Toggle name="data-sharing" label="Data Sharing"/>
                 <Toggle name="region-available" label="Region Available"/>
                 <Toggle name="packages-supported" label="Packages Supported"/>
+                <Toggle name="mcp-pro-enabled" label="MCP Pro Enabled"/>
             </VisualElement>
             <VisualElement class="row">
                 <Button name="fetch-settings" class="simple" text="Fetch"/>

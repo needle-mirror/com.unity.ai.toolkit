@@ -11,6 +11,7 @@ namespace Unity.AI.Toolkit.Accounts.Services.Data
         public bool IsAiGeneratorsEnabled;
         public bool IsDataSharingEnabled;
         public bool IsTermsOfServiceAccepted;
+        public bool IsMcpProEnabled;
 
         public SettingsRecord(SettingsResult result)
         {
@@ -19,6 +20,7 @@ namespace Unity.AI.Toolkit.Accounts.Services.Data
             IsAiGeneratorsEnabled = result is { IsAiGeneratorsEnabled: true };
             IsDataSharingEnabled = result is { IsDataSharingEnabled: true };
             IsTermsOfServiceAccepted = result is { IsTermsOfServiceAccepted: true };
+            IsMcpProEnabled = result is { IsMcpProEnabled: true };
         }
     }
 
