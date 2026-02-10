@@ -9,6 +9,7 @@ using UnityEngine.UIElements;
 
 namespace Unity.AI.Toolkit.Accounts.Services
 {
+#if UNITY_6000_3_OR_NEWER
     static class AIDropdownController
     {
         const string key = "HideAIMenu";
@@ -39,4 +40,5 @@ namespace Unity.AI.Toolkit.Accounts.Services
             AIDropdownConfig.instance.RegisterController(null);
         }
     }
+#endif
 }

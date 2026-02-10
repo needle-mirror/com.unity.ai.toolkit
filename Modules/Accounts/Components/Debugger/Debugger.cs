@@ -11,18 +11,21 @@ namespace Unity.AI.Toolkit.Accounts.Components
     [UxmlElement]
     partial class Debugger : VisualElement
     {
+#if UNITY_6000_3_OR_NEWER
         void TrackDropdown()
         {
             var aiDropdownUsed = this.Q<Toggle>("is-used-by-ai-dropdown");
             AIDropdownController.dropdownContent.dropdown.RegisterCallback<AttachToPanelEvent>(_ => aiDropdownUsed.value = true);
             AIDropdownController.dropdownContent.dropdown.RegisterCallback<DetachFromPanelEvent>(_ => aiDropdownUsed.value = false);
         }
+#endif
 
         public Debugger()
         {
             var tree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/com.unity.ai.toolkit/Modules/Accounts/Components/Debugger/Debugger.uxml");
             tree.CloneTree(this);
 
+#if UNITY_6000_3_OR_NEWER
             var reset = this.Q<Toggle>("reset-dropdown");
             reset.RegisterValueChangedCallback(evt =>
             {
@@ -32,14 +35,17 @@ namespace Unity.AI.Toolkit.Accounts.Components
                     AIDropdownController.Reset();
             });
             reset.SetValueWithoutNotify(AIDropdownController.dropdownContent != null);
+#endif
 
             var session = this.Q<Toggle>("session");
             Account.sessionStatus.settings.Use(value => session.SetValueWithoutNotify(value));
 
+#if UNITY_6000_3_OR_NEWER
             if (AIDropdownController.dropdownContent.dropdown == null)
                 AIDropdownController.dropdownContent.OnCreated += TrackDropdown;
             else
                 TrackDropdown();
+#endif
 
             var cloudConnected = this.Q<EnumField>("cloud-connected");
             cloudConnected.Init(Account.cloudConnected.Value);

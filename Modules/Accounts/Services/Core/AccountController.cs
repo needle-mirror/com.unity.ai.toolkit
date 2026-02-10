@@ -32,11 +32,13 @@ namespace Unity.AI.Toolkit.Accounts.Services
 
             Account.settings.OnChange -= VerifyTermsOfServiceAcceptance;
 
+#if UNITY_6000_3_OR_NEWER
             // AIDropdownConfig.instance.termsAccepted will be true if the ai toolkit was not yet installed
             // and the user clicked "agree and install" with the editor ai dropdown dialog.
             // When it is the case, we need to send the fact that it was agreed to the server to be stored.
             if (AIDropdownConfig.instance.termsAccepted && !Account.legalAgreement.IsAgreed)
                 _ = SetTermsOfService();
+#endif
         }
 
         public static async Task SetTermsOfService()

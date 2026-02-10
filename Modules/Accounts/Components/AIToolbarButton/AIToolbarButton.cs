@@ -7,6 +7,7 @@ using UnityEngine.UIElements;
 
 namespace Unity.AI.Toolkit.Accounts
 {
+#if UNITY_6000_3_OR_NEWER
     public static class AIToolbarButton
     {
         const string k_UssClassName = "ai-toolbar-button";
@@ -73,4 +74,19 @@ namespace Unity.AI.Toolkit.Accounts
             AIButton.AddToClassList(k_UssClassName);
         }
     }
+#else
+    public static class AIToolbarButton
+    {
+        public static void ShowPointsCostNotification(int amount)
+        {
+            // Delegate to the legacy implementation
+            AIToolbarButtonLegacy.ShowPointsCostNotification(amount);
+        }
+
+        internal static void Init()
+        {
+            // Legacy button is initialized via InitializeOnLoadMethod in AIToolbarButtonLegacy
+        }
+    }
+#endif
 }
