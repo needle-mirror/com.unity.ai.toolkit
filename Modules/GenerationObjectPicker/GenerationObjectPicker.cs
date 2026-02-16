@@ -22,7 +22,22 @@ namespace Unity.AI.Toolkit
     {
         static readonly Dictionary<string, RegisteredTemplate> k_RegisteredTemplates = new();
 
-        record RegisteredTemplate(Func<string, bool, string> createTemplate, string assetPath, Action<string> createAsset, Type assetType)
+        /// <summary>
+        /// Flags for controlling template visibility and filtering behavior.
+        /// </summary>
+        [Flags]
+        public enum TemplateFlags
+        {
+            /// <summary>No special flags.</summary>
+            None = 0,
+            /// <summary>
+            /// Template is for skybox/cubemap material generation.
+            /// When set, this template is only shown when editing a skybox material field.
+            /// </summary>
+            SkyboxOnly = 1,
+        }
+
+        record RegisteredTemplate(Func<string, bool, string> createTemplate, string assetPath, Action<string> createAsset, Type assetType, TemplateFlags flags = TemplateFlags.None)
         {
             public Object templateObject;
         }
@@ -34,8 +49,9 @@ namespace Unity.AI.Toolkit
         /// <param name="createTemplate">blank asset template create function</param>
         /// <param name="assetPath">generate asset path on template pick</param>
         /// <param name="createAsset">generate asset action on template pick</param>
-        public static void RegisterTemplate<T>(string modality, Func<string, bool, string> createTemplate, string assetPath, Action<string> createAsset) where T : Object =>
-            k_RegisteredTemplates.TryAdd(modality, new RegisteredTemplate(createTemplate, assetPath, createAsset, typeof(T)));
+        /// <param name="flags">optional template flags for context-specific filtering</param>
+        public static void RegisterTemplate<T>(string modality, Func<string, bool, string> createTemplate, string assetPath, Action<string> createAsset, TemplateFlags flags = TemplateFlags.None) where T : Object =>
+            k_RegisteredTemplates.TryAdd(modality, new RegisteredTemplate(createTemplate, assetPath, createAsset, typeof(T), flags));
 
         static readonly string k_OldTemplatesDirectory = Path.Combine("Assets", "AI Toolkit", "Templates");
 
@@ -68,8 +84,10 @@ namespace Unity.AI.Toolkit
             if (allowedTypes is not { Length: > 0 })
                 return;
 
+            var isSkyboxContext = ObjectSelectorUtils.IsSkyboxContext(window);
+
             var templates = new List<RegisteredTemplate>();
-            foreach (var template in k_RegisteredTemplates.Values)
+            foreach (var (modality, template) in k_RegisteredTemplates)
             {
                 foreach (var allowedType in allowedTypes)
                 {
@@ -78,6 +96,19 @@ namespace Unity.AI.Toolkit
 
                     if (allowedType.IsAssignableFrom(template.assetType))
                     {
+                        // Filter templates based on context flags and current state
+                        if ((template.flags & TemplateFlags.SkyboxOnly) != 0)
+                        {
+                            // SkyboxOnly templates should only appear in skybox context
+                            if (!isSkyboxContext)
+                                continue;
+                        }
+                        else if (template.assetType == typeof(Material) && isSkyboxContext)
+                        {
+                            // Skip non-skybox Material templates when in skybox context
+                            continue;
+                        }
+
                         templates.Add(template);
                         break;
                     }
