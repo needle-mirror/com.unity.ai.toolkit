@@ -2,17 +2,30 @@ using System;
 
 namespace Unity.AI.Toolkit.Accounts.Services.Core
 {
-    class Proxy<T> : IProxy<T>
+    public class Proxy<T> : IProxy<T>
     {
-        readonly Func<T> m_Get;
-        readonly Action<T> m_Set;
+        protected Func<T> Get { get; init; }
+        protected Action<T> Set { get; init; }
 
-        public T Value { get => m_Get(); set => m_Set(value); }
+        public T Value { get => Get(); set => Set(value); }
 
         public Proxy(Func<T> get, Action<T> set)
         {
-            m_Get = get;
-            m_Set = set;
+            Get = get;
+            Set = set;
+        }
+    }
+
+    public class ValueProxy<T> : Proxy<T>
+    {
+        T m_Value;
+
+        public ValueProxy(Func<T> get = null, Action<T> set = null) : base(get, set)
+        {
+            if (get == null)
+                Get = () => m_Value;
+            if (set == null)
+                Set = val => m_Value = val;
         }
     }
 }

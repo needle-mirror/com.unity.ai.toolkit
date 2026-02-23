@@ -22,5 +22,8 @@
             "define": "UNITY_AI_OPEN_BETA"
         }
     ],
-    "noEngineReferences": false
+    "noEngineReferences": false,
+    "internalsVisibleTo": [
+        "Unity.AI.Assistant.Editor"
+    ]
 }

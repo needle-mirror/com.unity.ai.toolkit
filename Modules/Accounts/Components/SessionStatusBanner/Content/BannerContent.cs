@@ -21,7 +21,7 @@ namespace Unity.AI.Toolkit.Accounts.Components
 
             content.AddToClassList("banner-content");
             content.Add(useInfoIcon ? CreateInfoIcon() : CreateWarningIcon());
-            content.Add(new RichLabel(message, links));
+            content.Add(CreateScrollableLabel(message, links));
         }
 
         public BasicBannerContent(string message, IEnumerable<LabelLink> links, string buttonText, Action buttonAction)
@@ -29,7 +29,7 @@ namespace Unity.AI.Toolkit.Accounts.Components
             Init();
 
             content.AddToClassList("banner-content-button");
-            content.Add(new RichLabel(message, links));
+            content.Add(CreateScrollableLabel(message, links));
 
             if (buttonAction == null) return;
 
@@ -44,7 +44,7 @@ namespace Unity.AI.Toolkit.Accounts.Components
             Init();
             content.AddToClassList("banner-content");
             var warningIcon = CreateWarningIcon();
-            var richLabel = new RichLabel(message, links);
+            var richLabel = CreateScrollableLabel(message, links);
             var dropdownLoading = new DropdownLoading(loadingMessage);
 
             RegisterCallback<AttachToPanelEvent>(async _ =>
@@ -64,6 +64,16 @@ namespace Unity.AI.Toolkit.Accounts.Components
             styleSheets.Add(AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/com.unity.ai.toolkit/Modules/Accounts/Components/AIDropdownRoot/AIDropdownRoot.uss"));
             AddToClassList("banner");
             Add(content);
+        }
+
+        static ScrollView CreateScrollableLabel(string message, IEnumerable<LabelLink> links)
+        {
+            var scrollView = new ScrollView(ScrollViewMode.Vertical);
+            scrollView.style.flexGrow = 1;
+            scrollView.style.flexShrink = 1;
+            scrollView.style.flexWrap = Wrap.Wrap;
+            scrollView.Add(new RichLabel(message, links));
+            return scrollView;
         }
 
         protected static Image CreateWarningIcon()
